@@ -8,7 +8,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.zamulabs.dineeasepos.components.BloomNavigationRailBar
+import com.zamulabs.dineeasepos.components.AppNavigationRailBar
 import com.zamulabs.dineeasepos.navigation.AppNavHost
 import com.zamulabs.dineeasepos.navigation.Destinations
 import com.zamulabs.dineeasepos.navigation.NavRail
@@ -31,7 +31,7 @@ fun App() {
 
             Row {
                 if (showNavRail) {
-                    BloomNavigationRailBar(
+                    AppNavigationRailBar(
                         navController = navController,
                     )
                 }

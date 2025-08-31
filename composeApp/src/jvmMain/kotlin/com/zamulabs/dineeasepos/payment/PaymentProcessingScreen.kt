@@ -11,9 +11,17 @@ fun PaymentProcessingScreen(
     navController: NavController,
     modifier: Modifier = Modifier
 ) {
-    Surface(
-        color = MaterialTheme.colorScheme.primary
-    ) {
-
-    }
+    val vm: PaymentProcessingViewModel = org.koin.compose.koinInject()
+    val state = vm.uiState
+    PaymentProcessingScreenContent(
+        state = state,
+        onEvent = {
+            vm.onEvent(it)
+            if (it is PaymentProcessingUiEvent.OnProcessPayment) {
+                navController.navigate(com.zamulabs.dineeasepos.navigation.Destinations.Receipt)
+            }
+        },
+        onBack = { navController.popBackStack() },
+        modifier = modifier
+    )
 }

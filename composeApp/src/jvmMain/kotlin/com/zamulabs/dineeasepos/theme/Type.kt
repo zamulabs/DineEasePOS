@@ -20,159 +20,137 @@ import dineeasepos.composeapp.generated.resources.be_vietnampro_thin
 import org.jetbrains.compose.resources.Font
 
 @Composable
-fun montserrat(): FontFamily {
-    val montserratRegular =
-        Font(
-            resource = Res.font.be_vietnampro_regular,
-            weight = FontWeight.Normal,
-            style = FontStyle.Normal,
-        )
-
-    val montserratBold =
-        Font(
-            resource = Res.font.be_vietnampro_bold,
-            FontWeight.Bold,
-            FontStyle.Normal,
-        )
-
-    val montserratLight =
+fun beVietnamPro(): FontFamily {
+    return FontFamily(
         Font(
             resource = Res.font.be_vietnampro_light,
-            FontWeight.Light,
-            FontStyle.Normal,
-        )
-
-    val montserratMedium =
+            weight = FontWeight.Light
+        ),
+        Font(
+            resource = Res.font.be_vietnampro_regular,
+            weight = FontWeight.Normal
+        ),
         Font(
             resource = Res.font.be_vietnampro_medium,
-            FontWeight.Medium,
-            FontStyle.Normal,
-        )
-
-    val montserratSemiBold =
+            weight = FontWeight.Medium
+        ),
         Font(
             resource = Res.font.be_vietnampro_semibold,
-            FontWeight.SemiBold,
-            FontStyle.Normal,
-        )
-
-    val montserratThin =
+            weight = FontWeight.SemiBold
+        ),
         Font(
-            resource = Res.font.be_vietnampro_thin,
-            FontWeight.Thin,
-            FontStyle.Normal,
-        )
-
-    val montserratExtraBold =
-        Font(
-            resource = Res.font.be_vietnampro_extrabold,
-            FontWeight.ExtraBold,
-            FontStyle.Normal,
-        )
-
-    val montserratExtraLight =
-        Font(
-            resource = Res.font.be_vietnampro_extralight,
-            FontWeight.ExtraLight,
-            FontStyle.Normal,
-        )
-    val montserratBlack = Font(
-        resource = Res.font.be_vietnampro_black,
-        FontWeight.Black,
-        FontStyle.Normal,
-    )
-
-     return FontFamily(
-        montserratThin,
-        montserratExtraLight,
-        montserratLight,
-        montserratRegular,
-        montserratMedium,
-        montserratSemiBold,
-        montserratBold,
-        montserratExtraBold,
-        montserratBlack,
+            resource = Res.font.be_vietnampro_bold,
+            weight = FontWeight.Bold
+        ),
     )
 }
+
+
 
 @Composable
 internal fun getTypography(): Typography {
-    val montserrat = montserrat()
+    val fontFamily = beVietnamPro()
+
     return Typography(
         displayLarge = TextStyle(
-            fontFamily = montserrat,
-            fontWeight = FontWeight.W400,
-            fontSize = 50.sp,
+            fontFamily = fontFamily,
+            fontWeight = FontWeight.Light,
+            fontSize = 57.sp, // M3 spec
+            lineHeight = 64.sp,
+            letterSpacing = (-0.25).sp,
         ),
         displayMedium = TextStyle(
-            fontFamily = montserrat,
-            fontWeight = FontWeight.W400,
-            fontSize = 40.sp,
+            fontFamily = fontFamily,
+            fontWeight = FontWeight.Normal,
+            fontSize = 45.sp,
+            lineHeight = 52.sp,
         ),
         displaySmall = TextStyle(
-            fontFamily = montserrat,
-            fontWeight = FontWeight.W400,
-            fontSize = 30.sp,
+            fontFamily = fontFamily,
+            fontWeight = FontWeight.Normal,
+            fontSize = 36.sp,
+            lineHeight = 44.sp,
         ),
         headlineLarge = TextStyle(
-            fontFamily = montserrat,
-            fontWeight = FontWeight.W400,
-            fontSize = 28.sp,
+            fontFamily = fontFamily,
+            fontWeight = FontWeight.Normal,
+            fontSize = 32.sp,
+            lineHeight = 40.sp,
         ),
         headlineMedium = TextStyle(
-            fontFamily = montserrat,
-            fontWeight = FontWeight.W400,
-            fontSize = 24.sp,
+            fontFamily = fontFamily,
+            fontWeight = FontWeight.Normal,
+            fontSize = 28.sp,
+            lineHeight = 36.sp,
         ),
         headlineSmall = TextStyle(
-            fontFamily = montserrat,
-            fontWeight = FontWeight.W400,
-            fontSize = 20.sp,
+            fontFamily = fontFamily,
+            fontWeight = FontWeight.Medium,
+            fontSize = 24.sp,
+            lineHeight = 32.sp,
         ),
         titleLarge = TextStyle(
-            fontFamily = montserrat,
-            fontWeight = FontWeight.W700,
-            fontSize = 18.sp,
+            fontFamily = fontFamily,
+            fontWeight = FontWeight.Medium,
+            fontSize = 22.sp,
+            lineHeight = 28.sp,
         ),
         titleMedium = TextStyle(
-            fontFamily = montserrat,
-            fontWeight = FontWeight.W700,
-            fontSize = 14.sp,
+            fontFamily = fontFamily,
+            fontWeight = FontWeight.Medium,
+            fontSize = 16.sp,
+            lineHeight = 24.sp,
+            letterSpacing = 0.15.sp,
         ),
         titleSmall = TextStyle(
-            fontFamily = montserrat,
-            fontWeight = FontWeight.W500,
-            fontSize = 12.sp,
+            fontFamily = fontFamily,
+            fontWeight = FontWeight.Medium,
+            fontSize = 14.sp,
+            lineHeight = 20.sp,
+            letterSpacing = 0.1.sp,
         ),
         bodyLarge = TextStyle(
-            fontFamily = montserrat,
-            fontWeight = FontWeight.W400,
-            fontSize = 14.sp,
+            fontFamily = fontFamily,
+            fontWeight = FontWeight.Normal,
+            fontSize = 16.sp,
+            lineHeight = 24.sp,
+            letterSpacing = 0.5.sp,
         ),
         bodyMedium = TextStyle(
-            fontFamily = montserrat,
-            fontWeight = FontWeight.W400,
-            fontSize = 12.sp,
+            fontFamily = fontFamily,
+            fontWeight = FontWeight.Normal,
+            fontSize = 14.sp,
+            lineHeight = 20.sp,
+            letterSpacing = 0.25.sp,
         ),
         bodySmall = TextStyle(
-            fontFamily = montserrat,
-            fontWeight = FontWeight.W400,
-            fontSize = 11.sp,
+            fontFamily = fontFamily,
+            fontWeight = FontWeight.Normal,
+            fontSize = 12.sp,
+            lineHeight = 16.sp,
+            letterSpacing = 0.4.sp,
         ),
         labelLarge = TextStyle(
-            fontFamily = montserrat,
-            fontWeight = FontWeight.W400,
-            fontSize = 13.sp,
+            fontFamily = fontFamily,
+            fontWeight = FontWeight.Medium,
+            fontSize = 14.sp,
+            lineHeight = 20.sp,
+            letterSpacing = 0.1.sp,
         ),
         labelMedium = TextStyle(
-            fontFamily = montserrat,
-            fontWeight = FontWeight.W400,
-            fontSize = 11.sp,
+            fontFamily = fontFamily,
+            fontWeight = FontWeight.Medium,
+            fontSize = 12.sp,
+            lineHeight = 16.sp,
+            letterSpacing = 0.5.sp,
         ),
         labelSmall = TextStyle(
-            fontFamily = montserrat,
-            fontWeight = FontWeight.W500,
-            fontSize = 9.sp,
+            fontFamily = fontFamily,
+            fontWeight = FontWeight.Medium,
+            fontSize = 11.sp,
+            lineHeight = 16.sp,
+            letterSpacing = 0.5.sp,
         ),
     )
 }
+

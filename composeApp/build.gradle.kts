@@ -45,6 +45,9 @@ kotlin {
 
             implementation(libs.stdlib)
             implementation(libs.androidx.navigation.compose)
+
+            // Compose Data Table (Material 3)
+            implementation("com.seanproctor:data-table-material3:0.11.4")
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
