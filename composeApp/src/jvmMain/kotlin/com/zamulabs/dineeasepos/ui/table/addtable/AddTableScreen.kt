@@ -18,8 +18,10 @@ package com.zamulabs.dineeasepos.ui.table.addtable
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.navigation.NavController
 import com.zamulabs.dineeasepos.utils.ObserverAsEvent
+import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 
 @Composable
@@ -28,11 +30,16 @@ fun AddTableScreen(
     vm: AddTableViewModel = koinInject<AddTableViewModel>()
 ){
     val state by vm.uiState.collectAsState()
+    val scope = rememberCoroutineScope()
 
     ObserverAsEvent(flow = vm.uiEffect) { effect ->
         when (effect) {
-            is AddTableUiEffect.ShowSnackBar -> {}
-            is AddTableUiEffect.ShowToast -> {}
+            is AddTableUiEffect.ShowSnackBar -> {
+                scope.launch { state.snackbarHostState.showSnackbar(effect.message) }
+            }
+            is AddTableUiEffect.ShowToast -> {
+                // TODO: add desktop toast if needed
+            }
             AddTableUiEffect.NavigateBack -> navController.popBackStack()
         }
     }

@@ -58,6 +58,7 @@ val viewModelModule =
         singleOf(::UserManagementViewModel)
         singleOf(::AddUserViewModel)
         singleOf(::ReceiptViewModel)
+        singleOf(::ReportsViewModel)
         singleOf(::LoginViewModel)
 
         /**

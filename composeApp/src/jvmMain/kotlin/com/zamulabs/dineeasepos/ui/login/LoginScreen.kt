@@ -16,25 +16,38 @@
 package com.zamulabs.dineeasepos.ui.login
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 import com.zamulabs.dineeasepos.ui.navigation.Destinations
+import kotlinx.coroutines.launch
 
 @Composable
 fun LoginScreen(
     navController: NavController,
     modifier: Modifier = Modifier,
 ) {
-    // Obtain VM via simple remember for now using our dedicated ViewModel class via default constructor
-    val viewModel = remember { LoginViewModel() }
-    val state = viewModel.uiState.collectAsState(initial = LoginUiState()).value
+    val vm: LoginViewModel = org.koin.compose.koinInject()
+    val state = vm.uiState.collectAsState().value
+    val scope = rememberCoroutineScope()
+
+    com.zamulabs.dineeasepos.utils.ObserverAsEvent(flow = vm.uiEffect) { effect ->
+        when (effect) {
+            is LoginUiEffect.ShowSnackBar -> {
+                scope.launch {
+                    state.snackbarHostState.showSnackbar(effect.message)
+                }
+            }
+            is LoginUiEffect.ShowToast -> { /* TODO: desktop toast */ }
+            LoginUiEffect.NavigateToDashboard -> navController.navigate(Destinations.Dashboard)
+        }
+    }
 
     LoginScreenContent(
         state = state,
-        onEvent = viewModel::onEvent,
-        onLoginSuccess = { navController.navigate(Destinations.Dashboard) },
+        onEvent = vm::onEvent,
+        onLoginSuccess = { /* navigation handled via effect */ },
         modifier = modifier
     )
 }

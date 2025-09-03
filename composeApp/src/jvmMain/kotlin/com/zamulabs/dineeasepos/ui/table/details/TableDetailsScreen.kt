@@ -18,9 +18,11 @@ package com.zamulabs.dineeasepos.ui.table.details
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.navigation.NavController
 import com.zamulabs.dineeasepos.ui.navigation.Destinations
 import com.zamulabs.dineeasepos.utils.ObserverAsEvent
+import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 
 @Composable
@@ -29,11 +31,14 @@ fun TableDetailsScreen(
 ){
     val vm: TableDetailsViewModel = koinInject<TableDetailsViewModel>()
     val state by vm.uiState.collectAsState()
+    val scope = rememberCoroutineScope()
 
     ObserverAsEvent(flow = vm.uiEffect) { effect ->
         when (effect) {
-            is TableDetailsUiEffect.ShowSnackBar -> {}
-            is TableDetailsUiEffect.ShowToast -> {}
+            is TableDetailsUiEffect.ShowSnackBar -> {
+                scope.launch { state.snackbarHostState.showSnackbar(effect.message) }
+            }
+            is TableDetailsUiEffect.ShowToast -> { /* TODO: desktop toast lib */ }
             TableDetailsUiEffect.NavigateBack -> navController.popBackStack()
             TableDetailsUiEffect.NavigateToNewOrder -> navController.navigate(Destinations.NewOrder)
             TableDetailsUiEffect.NavigateToEditTable -> navController.navigate(Destinations.AddTable)

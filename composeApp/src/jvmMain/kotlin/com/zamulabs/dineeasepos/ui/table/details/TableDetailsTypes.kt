@@ -15,10 +15,11 @@
  */
 package com.zamulabs.dineeasepos.ui.table.details
 
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Immutable
 
 @Immutable
-data class TableOrderItem(
+ data class TableOrderItem(
     val name: String,
     val quantity: Int,
     val price: String,
@@ -26,7 +27,7 @@ data class TableOrderItem(
 )
 
 @Immutable
-data class TableDetailsUiState(
+ data class TableDetailsUiState(
     val tableNumber: String = "Table 1",
     val capacity: Int = 4,
     val items: List<TableOrderItem> =
@@ -38,6 +39,9 @@ data class TableDetailsUiState(
     val subtotal: String = "$18.00",
     val tax: String = "$1.44",
     val total: String = "$19.44",
+    val isLoading: Boolean = false,
+    val errorMessage: String? = null,
+    val snackbarHostState: SnackbarHostState = SnackbarHostState(),
 )
 
 sealed interface TableDetailsUiEvent {

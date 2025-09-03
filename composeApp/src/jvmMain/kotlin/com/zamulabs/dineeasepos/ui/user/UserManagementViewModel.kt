@@ -16,37 +16,33 @@
 package com.zamulabs.dineeasepos.ui.user
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.zamulabs.dineeasepos.data.DineEaseRepository
+import com.zamulabs.dineeasepos.utils.NetworkResult
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
-class UserManagementViewModel : ViewModel() {
-    private val _uiState = MutableStateFlow(
-        UserManagementUiState(
-            users = listOf(
-                User("Sophia Bennett", "Manager", true),
-                User("Ethan Carter", "Server", true),
-                User("Olivia Davis", "Chef", true),
-                User("Liam Foster", "Bartender", false),
-                User("Ava Green", "Hostess", true),
-            ),
-        ),
-    )
+class UserManagementViewModel(
+    private val repository: DineEaseRepository,
+) : ViewModel() {
+    private val _uiState = MutableStateFlow(UserManagementUiState())
     val uiState = _uiState.asStateFlow()
 
     private val _uiEffect = Channel<UserManagementUiEffect>()
     val uiEffect = _uiEffect.receiveAsFlow()
 
-    fun updateUiState(block: UserManagementUiState.() -> UserManagementUiState) {
+    private fun updateUiState(block: UserManagementUiState.() -> UserManagementUiState) {
         _uiState.update(block)
     }
 
     fun onEvent(event: UserManagementUiEvent) {
         when (event) {
-            is UserManagementUiEvent.OnClickAddUser -> { /* route from Screen */ }
-            is UserManagementUiEvent.OnEdit -> { /* route from Screen */ }
+            is UserManagementUiEvent.OnClickAddUser -> { /* Navigation handled in Screen */ }
+            is UserManagementUiEvent.OnEdit -> { /* Navigation handled in Screen */ }
             is UserManagementUiEvent.OnToggleActive -> {
                 updateUiState {
                     val list = users.toMutableList()
@@ -57,4 +53,33 @@ class UserManagementViewModel : ViewModel() {
             }
         }
     }
+
+    fun loadUsers() {
+        viewModelScope.launch {
+            when (val result = repository.getUsers()) {
+                is NetworkResult.Error -> {
+                    updateUiState {
+                        copy(
+                            users = sampleUsers(),
+                        )
+                    }
+                }
+                is NetworkResult.Success -> {
+                    updateUiState {
+                        copy(
+                            users = result.data ?: sampleUsers(),
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    private fun sampleUsers(): List<User> = listOf(
+        User("Sophia Bennett", "Manager", true),
+        User("Ethan Carter", "Server", true),
+        User("Olivia Davis", "Chef", true),
+        User("Liam Foster", "Bartender", false),
+        User("Ava Green", "Hostess", true),
+    )
 }

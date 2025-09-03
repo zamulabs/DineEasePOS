@@ -43,7 +43,7 @@ fun AddUserScreenContent(
                 parentLabel = "Users",
                 currentLabel = "Add User",
                 onBack = {
-                    onEvent(AddUserUiEvent.OnSave)
+                    onEvent(AddUserUiEvent.OnCancel)
                 },
             )
         },

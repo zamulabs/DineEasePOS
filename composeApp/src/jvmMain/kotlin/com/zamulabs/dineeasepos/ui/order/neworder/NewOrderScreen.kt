@@ -16,11 +16,13 @@
 package com.zamulabs.dineeasepos.ui.order.neworder
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 import com.zamulabs.dineeasepos.ui.navigation.Destinations
+import com.zamulabs.dineeasepos.utils.ObserverAsEvent
 import org.koin.compose.koinInject
 
 @Composable
@@ -29,13 +31,26 @@ fun NewOrderScreen(
     modifier: Modifier = Modifier,
     viewModel: NewOrderViewModel = koinInject<NewOrderViewModel>(),
 ){
-    val state = viewModel.uiState
+    val state by viewModel.uiState.collectAsState()
+
+    LaunchedEffect(viewModel) {
+        viewModel.loadData()
+    }
+
+    ObserverAsEvent(flow = viewModel.uiEffect) { effect ->
+        when (effect) {
+            is NewOrderUiEffect.ShowSnackBar -> {
+                // ScreenContent owns the SnackbarHostState; triggering via state
+                // If needed, we could forward messages through a stateful host; kept simple here
+            }
+            NewOrderUiEffect.NavigateBack -> navController.popBackStack()
+        }
+    }
+
     NewOrderScreenContent(
         state = state,
         onEvent = viewModel::onEvent,
-        onPlaceOrder = {
-            navController.navigate(Destinations.PaymentProcessing)
-        },
+        onPlaceOrder = { navController.navigate(Destinations.PaymentProcessing) },
         onBack = { navController.popBackStack() },
         modifier = modifier
     )

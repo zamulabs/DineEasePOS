@@ -82,72 +82,81 @@ fun DashboardScreenContent(
                     )
                 }
             }
-            item { Spacer(Modifier.height(16.dp)) }
-            item {
-                Text(
-                    text = "Top Selling Items",
-                    style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
+            if (state.isLoadingDashboard) {
+                item {
+                    Text("Loading dashboard...", color = MaterialTheme.colorScheme.onBackground)
+                }
             }
-            item { Spacer(Modifier.height(8.dp)) }
-            item {
-                AppDataTable(
-                    columns = listOf(
-                        DataColumn { Text("Item") },
-                        DataColumn { Text("Quantity Sold") },
-                        DataColumn { Text("Revenue") },
-                    ),
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    state.topSelling.forEach { item ->
-                        row {
-                            cell { Text(item.item) }
-                            cell { Text(item.qty, color = MaterialTheme.colorScheme.primary) }
-                            cell { Text(item.revenue, color = MaterialTheme.colorScheme.primary) }
+            if (state.topSelling.isNotEmpty()) {
+                item { Spacer(Modifier.height(16.dp)) }
+                item {
+                    Text(
+                        text = "Top Selling Items",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                }
+                item { Spacer(Modifier.height(8.dp)) }
+                item {
+                    AppDataTable(
+                        columns = listOf(
+                            DataColumn { Text("Item") },
+                            DataColumn { Text("Quantity Sold") },
+                            DataColumn { Text("Revenue") },
+                        ),
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        state.topSelling.forEach { item ->
+                            row {
+                                cell { Text(item.item) }
+                                cell { Text(item.qty, color = MaterialTheme.colorScheme.primary) }
+                                cell { Text(item.revenue, color = MaterialTheme.colorScheme.primary) }
+                            }
                         }
                     }
                 }
             }
-            item { Spacer(Modifier.height(16.dp)) }
-            item {
-                Text(
-                    text = "Real-Time Order Tracking",
-                    style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
-            }
-            item { Spacer(Modifier.height(8.dp)) }
-            item {
-                AppDataTable(
-                    columns = listOf(
-                        DataColumn { Text("Order ID") },
-                        DataColumn { Text("Status") },
-                        DataColumn { Text("Customer") },
-                        DataColumn { Text("Order Time") },
-                        DataColumn { Text("Total") },
-                        DataColumn { Text("Actions") },
-                    ),
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    state.recentOrders.forEach { order ->
-                        row {
-                            cell {
-                                Text(
-                                    order.id,
-                                    modifier = Modifier.clickable { onOrderClick(order.id) })
-                            }
-                            cell { StatusPill(order.status) }
-                            cell { Text(order.customer, color = MaterialTheme.colorScheme.primary) }
-                            cell { Text(order.time, color = MaterialTheme.colorScheme.primary) }
-                            cell { Text(order.total, color = MaterialTheme.colorScheme.primary) }
-                            cell {
-                                IconButton(onClick = { onOrderClick(order.id) }) {
-                                    Icon(
-                                        imageVector = Icons.Filled.Visibility,
-                                        contentDescription = "View Details",
-                                        tint = MaterialTheme.colorScheme.primary
-                                    )
+            if (state.recentOrders.isNotEmpty()) {
+                item { Spacer(Modifier.height(16.dp)) }
+                item {
+                    Text(
+                        text = "Real-Time Order Tracking",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                }
+                item { Spacer(Modifier.height(8.dp)) }
+                item {
+                    AppDataTable(
+                        columns = listOf(
+                            DataColumn { Text("Order ID") },
+                            DataColumn { Text("Status") },
+                            DataColumn { Text("Customer") },
+                            DataColumn { Text("Order Time") },
+                            DataColumn { Text("Total") },
+                            DataColumn { Text("Actions") },
+                        ),
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        state.recentOrders.forEach { order ->
+                            row {
+                                cell {
+                                    Text(
+                                        order.id,
+                                        modifier = Modifier.clickable { onOrderClick(order.id) })
+                                }
+                                cell { StatusPill(order.status) }
+                                cell { Text(order.customer, color = MaterialTheme.colorScheme.primary) }
+                                cell { Text(order.time, color = MaterialTheme.colorScheme.primary) }
+                                cell { Text(order.total, color = MaterialTheme.colorScheme.primary) }
+                                cell {
+                                    IconButton(onClick = { onOrderClick(order.id) }) {
+                                        Icon(
+                                            imageVector = Icons.Filled.Visibility,
+                                            contentDescription = "View Details",
+                                            tint = MaterialTheme.colorScheme.primary
+                                        )
+                                    }
                                 }
                             }
                         }

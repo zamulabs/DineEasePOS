@@ -55,6 +55,7 @@ fun AddMenuItemScreenContent(
     modifier: Modifier = Modifier,
 ) {
     AppScaffold(
+        snackbarHostState = state.snackbarHostState,
         modifier = modifier,
         topBar = {
             BackBreadcrumb(

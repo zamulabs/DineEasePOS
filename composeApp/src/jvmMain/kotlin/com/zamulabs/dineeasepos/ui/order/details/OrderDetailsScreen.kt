@@ -16,9 +16,13 @@
 package com.zamulabs.dineeasepos.ui.order.details
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.navigation.NavController
+import com.zamulabs.dineeasepos.utils.ObserverAsEvent
+import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 
 @Composable
@@ -27,5 +31,25 @@ fun OrderDetailsScreen(
     viewModel: OrderDetailsViewModel = koinInject(),
 ){
     val state by viewModel.uiState.collectAsState()
-    OrderDetailsScreenContent(state = state, onEvent = viewModel::onEvent, onBack = { navController.popBackStack() })
+    val scope = rememberCoroutineScope()
+
+    LaunchedEffect(viewModel) {
+        viewModel.loadOrderDetails()
+    }
+
+    ObserverAsEvent(viewModel.uiEffect) { effect ->
+        when (effect) {
+            is OrderDetailsUiEffect.ShowSnackBar -> {
+                scope.launch { state.snackbarHostState.showSnackbar(effect.message) }
+            }
+            is OrderDetailsUiEffect.ShowToast -> { /* TODO desktop toast */ }
+            OrderDetailsUiEffect.NavigateBack -> navController.popBackStack()
+        }
+    }
+
+    OrderDetailsScreenContent(
+        state = state,
+        onEvent = viewModel::onEvent,
+        onBack = { navController.popBackStack() }
+    )
 }

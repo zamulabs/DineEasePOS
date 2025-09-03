@@ -33,8 +33,8 @@ enum class ReportsTab { Sales, ItemPerformance, PaymentSummary }
 data class ReportsUiState(
     val selectedTab: ReportsTab = ReportsTab.Sales,
     val period: String = "Last 30 Days",
-    val totalSales: String = "$25,450",
-    val delta: String = "+12%",
+    val totalSales: String = "$0.00",
+    val delta: String = "0%",
     val rows: List<SalesRow> = emptyList(),
     val snackbarHostState: SnackbarHostState = SnackbarHostState(),
 )
@@ -49,4 +49,10 @@ sealed interface ReportsUiEvent {
     ) : ReportsUiEvent
 
     data object OnExport : ReportsUiEvent
+}
+
+sealed class ReportsUiEffect {
+    data class ShowToast(val message: String) : ReportsUiEffect()
+    data class ShowSnackBar(val message: String) : ReportsUiEffect()
+    data object NavigateBack : ReportsUiEffect()
 }

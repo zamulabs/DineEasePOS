@@ -15,21 +15,82 @@
  */
 package com.zamulabs.dineeasepos.ui.order.neworder
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.zamulabs.dineeasepos.data.DineEaseRepository
+import com.zamulabs.dineeasepos.utils.NetworkResult
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
-class NewOrderViewModel : ViewModel() {
-    var uiState by mutableStateOf(NewOrderUiState(tables = listOf("Select Table", "Table 1", "Table 2", "Table 3")))
-        private set
+class NewOrderViewModel(
+    private val repository: DineEaseRepository,
+) : ViewModel() {
+    private val _uiState = MutableStateFlow(NewOrderUiState())
+    val uiState = _uiState.asStateFlow()
+
+    private val _uiEffect = Channel<NewOrderUiEffect>()
+    val uiEffect = _uiEffect.receiveAsFlow()
+
+    fun updateUiState(block: NewOrderUiState.() -> NewOrderUiState) {
+        _uiState.update(block)
+    }
 
     fun onEvent(event: NewOrderUiEvent) {
         when (event) {
-            is NewOrderUiEvent.OnSearch -> uiState = uiState.copy(searchString = event.query)
-            is NewOrderUiEvent.OnTableSelected -> uiState = uiState.copy(selectedTable = event.table)
-            is NewOrderUiEvent.OnCategorySelected -> uiState = uiState.copy(selectedCategoryIndex = event.index)
-            is NewOrderUiEvent.OnNotesChanged -> uiState = uiState.copy(notes = event.notes)
+            is NewOrderUiEvent.OnSearch -> updateUiState { copy(searchString = event.query) }
+            is NewOrderUiEvent.OnTableSelected -> updateUiState { copy(selectedTable = event.table) }
+            is NewOrderUiEvent.OnCategorySelected -> updateUiState { copy(selectedCategoryIndex = event.index) }
+            is NewOrderUiEvent.OnNotesChanged -> updateUiState { copy(notes = event.notes) }
+        }
+    }
+
+    fun loadData() {
+        viewModelScope.launch {
+            // Load tables
+            updateUiState { copy(isLoadingTables = true) }
+            when (val tablesRes = repository.getTables()) {
+                is NetworkResult.Error -> {
+                    updateUiState {
+                        copy(
+                            isLoadingTables = false,
+                            errorLoadingTables = tablesRes.errorMessage,
+                            tables = listOf("Select Table")
+                        )
+                    }
+                }
+                is NetworkResult.Success -> {
+                    val tableLabels = listOf("Select Table") + (tablesRes.data?.map { it.number } ?: emptyList())
+                    updateUiState { copy(isLoadingTables = false, tables = tableLabels) }
+                }
+            }
+
+            // Load menu items to display
+            updateUiState { copy(isLoadingMenuItems = true) }
+            when (val menuRes = repository.getMenu()) {
+                is NetworkResult.Error -> {
+                    updateUiState {
+                        copy(
+                            isLoadingMenuItems = false,
+                            errorLoadingMenuItems = menuRes.errorMessage,
+                            items = emptyList()
+                        )
+                    }
+                }
+                is NetworkResult.Success -> {
+                    val items = menuRes.data?.map {
+                        MenuItem(
+                            title = it.name,
+                            description = it.category,
+                            imageUrl = "" // no image from API
+                        )
+                    } ?: emptyList()
+                    updateUiState { copy(isLoadingMenuItems = false, items = items) }
+                }
+            }
         }
     }
 }

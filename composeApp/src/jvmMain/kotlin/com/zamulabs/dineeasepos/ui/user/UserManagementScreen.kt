@@ -29,6 +29,10 @@ fun UserManagementScreen(
 ){
     val state by viewModel.uiState.collectAsState()
 
+    androidx.compose.runtime.LaunchedEffect(viewModel) {
+        viewModel.loadUsers()
+    }
+
     ObserverAsEvent(flow = viewModel.uiEffect) { effect ->
         when (effect) {
             is UserManagementUiEffect.ShowSnackBar -> {}

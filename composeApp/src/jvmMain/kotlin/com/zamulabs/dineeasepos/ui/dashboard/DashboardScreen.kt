@@ -18,10 +18,12 @@ package com.zamulabs.dineeasepos.ui.dashboard
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 import com.zamulabs.dineeasepos.ui.navigation.Destinations
 import com.zamulabs.dineeasepos.utils.ObserverAsEvent
+import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 
 @Composable
@@ -31,11 +33,18 @@ fun DashboardScreen(
 ) {
     val viewModel: DashboardViewModel = koinInject()
     val uiState by viewModel.uiState.collectAsState()
+    val scope = rememberCoroutineScope()
+
+    androidx.compose.runtime.LaunchedEffect(viewModel) {
+        viewModel.refresh()
+    }
 
     ObserverAsEvent(flow = viewModel.uiEffect) { effect ->
         when (effect) {
             is DashboardUiEffect.ShowSnackBar -> {
-                // We could show a snackbar via state.snackbarHostState if desired
+                scope.launch {
+                    uiState.snackbarHostState.showSnackbar(effect.message)
+                }
             }
             is DashboardUiEffect.ShowToast -> {}
             DashboardUiEffect.NavigateBack -> navController.popBackStack()

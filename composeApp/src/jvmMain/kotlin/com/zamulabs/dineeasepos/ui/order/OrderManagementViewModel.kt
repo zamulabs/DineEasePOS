@@ -68,7 +68,6 @@ class OrderManagementViewModel(
                         copy(
                             isLoadingOrders = false,
                             errorLoadingOrders = result.errorMessage,
-                            orders = sampleOrders(),
                         )
                     }
                 }
@@ -77,7 +76,7 @@ class OrderManagementViewModel(
                     updateUiState {
                         copy(
                             isLoadingOrders = false,
-                            orders = result.data ?: sampleOrders(),
+                            orders = result.data.orEmpty(),
                         )
                     }
                 }
@@ -85,16 +84,4 @@ class OrderManagementViewModel(
         }
     }
 
-    private fun sampleOrders(): List<Order> = listOf(
-        Order("#12345", "Table 5", OrderStatus.Open, "$50.00", "10:00 AM"),
-        Order("#12346", "Table 2", OrderStatus.Completed, "$75.00", "11:30 AM"),
-        Order("#12347", "Table 8", OrderStatus.Open, "$30.00", "12:15 PM"),
-        Order("#12348", "Table 1", OrderStatus.Completed, "$100.00", "1:45 PM"),
-        Order("#12349", "Table 3", OrderStatus.Open, "$45.00", "2:30 PM"),
-        Order("#12350", "Table 6", OrderStatus.Completed, "$60.00", "3:00 PM"),
-        Order("#12351", "Table 4", OrderStatus.Open, "$80.00", "4:15 PM"),
-        Order("#12352", "Table 7", OrderStatus.Completed, "$90.00", "5:00 PM"),
-        Order("#12353", "Table 9", OrderStatus.Open, "$25.00", "5:45 PM"),
-        Order("#12354", "Table 10", OrderStatus.Completed, "$120.00", "6:30 PM"),
-    )
 }

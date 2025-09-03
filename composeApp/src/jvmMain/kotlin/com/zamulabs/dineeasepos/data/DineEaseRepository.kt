@@ -22,9 +22,37 @@ import com.zamulabs.dineeasepos.utils.NetworkResult
 
 interface DineEaseRepository {
     suspend fun getMenu(): NetworkResult<List<MenuItem>>
+    suspend fun addMenuItem(
+        name: String,
+        description: String?,
+        price: Double,
+        category: String,
+        active: Boolean,
+        prepTimeMinutes: Int?,
+        ingredients: String?,
+    ): NetworkResult<MenuItem>
+
     suspend fun getOrders(): NetworkResult<List<Order>>
     suspend fun getTables(): NetworkResult<List<com.zamulabs.dineeasepos.ui.table.DiningTable>>
     suspend fun getPayments(): NetworkResult<List<PaymentItem>>
+
+    // Payment processing
+    suspend fun processPayment(
+        orderId: String,
+        method: com.zamulabs.dineeasepos.ui.payment.paymentprocessing.PaymentMethod,
+        amountReceived: Double?,
+        gateway: String?,
+    ): NetworkResult<String>
+
+    // Users
+    suspend fun getUsers(): NetworkResult<List<com.zamulabs.dineeasepos.ui.user.User>>
+    suspend fun addUser(
+        name: String,
+        email: String,
+        role: String,
+        password: String,
+        isActive: Boolean,
+    ): NetworkResult<com.zamulabs.dineeasepos.ui.user.User>
 
     suspend fun addTable(
         number: String,
@@ -32,4 +60,15 @@ interface DineEaseRepository {
         capacity: Int,
         location: String?
     ): NetworkResult<com.zamulabs.dineeasepos.ui.table.DiningTable>
+
+    // Reports
+    suspend fun getSalesReports(period: String?): NetworkResult<List<com.zamulabs.dineeasepos.ui.reports.SalesRow>>
+
+    // Receipt
+    suspend fun getReceipt(orderId: String): NetworkResult<com.zamulabs.dineeasepos.ui.receipt.ReceiptUiState>
+
+    // Auth
+    suspend fun login(email: String, password: String): NetworkResult<String>
+    suspend fun forgotPassword(email: String): NetworkResult<String>
+    suspend fun resetPassword(email: String, code: String, newPassword: String): NetworkResult<String>
 }

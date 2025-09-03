@@ -16,20 +16,61 @@
 package com.zamulabs.dineeasepos.ui.order.details
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.zamulabs.dineeasepos.data.DineEaseRepository
+import com.zamulabs.dineeasepos.utils.NetworkResult
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
-class OrderDetailsViewModel : ViewModel() {
+class OrderDetailsViewModel(
+    private val repository: DineEaseRepository,
+) : ViewModel() {
     private val _uiState = MutableStateFlow(OrderDetailsUiState())
-    val uiState: StateFlow<OrderDetailsUiState> = _uiState.asStateFlow()
+    val uiState = _uiState.asStateFlow()
+
+    private val _uiEffect = Channel<OrderDetailsUiEffect>()
+    val uiEffect = _uiEffect.receiveAsFlow()
+
+    fun updateUiState(block: OrderDetailsUiState.() -> OrderDetailsUiState) {
+        _uiState.update(block)
+    }
+
+    fun loadOrderDetails(orderId: String? = null) {
+        viewModelScope.launch {
+            when (val result = repository.getOrders()) {
+                is NetworkResult.Error -> {
+                    // Keep existing sample but show error snackbar
+                    _uiEffect.trySend(OrderDetailsUiEffect.ShowSnackBar(result.errorMessage ?: "Failed to load order details"))
+                }
+                is NetworkResult.Success -> {
+                    val orders = result.data.orEmpty()
+                    val order = if (orderId != null) orders.find { it.id == orderId } else orders.firstOrNull()
+                    order?.let { o ->
+                        updateUiState {
+                            copy(
+                                orderId = o.id,
+                                table = o.table,
+                                placedOn = o.time,
+                                total = o.total,
+                                // keep other fields/sample data for now until API provides details
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     fun onEvent(event: OrderDetailsUiEvent) {
         when (event) {
-            OrderDetailsUiEvent.Cancel -> { /* update status if needed */ }
-            OrderDetailsUiEvent.Complete -> { /* update status if needed */ }
-            OrderDetailsUiEvent.MarkPreparing -> { /* update status if needed */ }
-            OrderDetailsUiEvent.MarkReady -> { /* update status if needed */ }
+            OrderDetailsUiEvent.Cancel -> { }
+            OrderDetailsUiEvent.Complete -> { }
+            OrderDetailsUiEvent.MarkPreparing -> { }
+            OrderDetailsUiEvent.MarkReady -> { }
         }
     }
 }

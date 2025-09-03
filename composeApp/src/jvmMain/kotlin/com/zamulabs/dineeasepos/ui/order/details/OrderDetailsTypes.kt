@@ -15,6 +15,7 @@
  */
 package com.zamulabs.dineeasepos.ui.order.details
 
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Immutable
 
 @Immutable
@@ -43,6 +44,7 @@ data class OrderDetailsUiState(
     val orderStatus: String = "Placed",
     val paymentStatus: String = "Paid",
     val paymentMethod: String = "Cash",
+    val snackbarHostState: SnackbarHostState = SnackbarHostState(),
 )
 
 sealed interface OrderDetailsUiEvent {
@@ -53,4 +55,10 @@ sealed interface OrderDetailsUiEvent {
     data object Complete : OrderDetailsUiEvent
 
     data object Cancel : OrderDetailsUiEvent
+}
+
+sealed class OrderDetailsUiEffect {
+    data class ShowToast(val message: String) : OrderDetailsUiEffect()
+    data class ShowSnackBar(val message: String) : OrderDetailsUiEffect()
+    data object NavigateBack : OrderDetailsUiEffect()
 }

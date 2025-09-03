@@ -25,5 +25,10 @@ fun ReportsScreen(
 ){
     val vm: ReportsViewModel = koinInject()
     val state by vm.uiState.collectAsState()
+
+    androidx.compose.runtime.LaunchedEffect(vm) {
+        vm.getSalesReports()
+    }
+
     ReportsScreenContent(state = state, onEvent = vm::onEvent)
 }

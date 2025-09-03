@@ -33,28 +33,79 @@ class DineEaseRepositoryImpl(
         }
     }
 
+    override suspend fun addMenuItem(
+        name: String,
+        description: String?,
+        price: Double,
+        category: String,
+        active: Boolean,
+        prepTimeMinutes: Int?,
+        ingredients: String?,
+    ): NetworkResult<MenuItem> {
+        return safeApiCall {
+            Napier.e("Creating menu item")
+            val response = apiService.createMenuItem(
+                com.zamulabs.dineeasepos.data.dto.CreateMenuItemRequestDto(
+                    name = name,
+                    description = description,
+                    price = price,
+                    category = category,
+                    active = active,
+                    prepTimeMinutes = prepTimeMinutes,
+                    ingredients = ingredients,
+                )
+            )
+            com.zamulabs.dineeasepos.data.dto.MenuResponseDto.Companion.run { response.toDomainModel() }
+        }
+    }
+
     override suspend fun getOrders(): NetworkResult<List<Order>> {
-        // TODO: Replace with real API call when available, e.g., apiService.fetchOrders()
         return safeApiCall {
             Napier.e("Fetching orders")
-            // Provide empty list; ViewModel will fallback to sample data until API is ready.
-            emptyList()
+            apiService.fetchOrders().map { com.zamulabs.dineeasepos.data.dto.OrderMappers.run { it.toDomain() } }
         }
     }
 
     override suspend fun getTables(): NetworkResult<List<com.zamulabs.dineeasepos.ui.table.DiningTable>> {
-        // TODO: Replace with real API call when available, e.g., apiService.fetchTables()
         return safeApiCall {
             Napier.e("Fetching tables")
-            emptyList()
+            apiService.fetchTables().map { com.zamulabs.dineeasepos.data.dto.TableMappers.run { it.toDomain() } }
         }
     }
 
     override suspend fun getPayments(): NetworkResult<List<PaymentItem>> {
-        // TODO: Replace with real API call when available, e.g., apiService.fetchPayments()
         return safeApiCall {
             Napier.e("Fetching payments")
-            emptyList()
+            apiService.fetchPayments().map { com.zamulabs.dineeasepos.data.dto.PaymentMappers.run { it.toDomain() } }
+        }
+    }
+
+    override suspend fun getUsers(): NetworkResult<List<com.zamulabs.dineeasepos.ui.user.User>> {
+        return safeApiCall {
+            Napier.e("Fetching users")
+            apiService.fetchUsers().map { com.zamulabs.dineeasepos.data.dto.UserMappers.run { it.toDomain() } }
+        }
+    }
+
+    override suspend fun addUser(
+        name: String,
+        email: String,
+        role: String,
+        password: String,
+        isActive: Boolean,
+    ): NetworkResult<com.zamulabs.dineeasepos.ui.user.User> {
+        return safeApiCall {
+            Napier.e("Creating user")
+            val response = apiService.createUser(
+                com.zamulabs.dineeasepos.data.dto.CreateUserRequestDto(
+                    name = name,
+                    email = email,
+                    role = role,
+                    password = password,
+                    isActive = isActive,
+                )
+            )
+            com.zamulabs.dineeasepos.data.dto.UserMappers.run { response.toDomain() }
         }
     }
 
@@ -75,6 +126,75 @@ class DineEaseRepositoryImpl(
                 )
             )
             com.zamulabs.dineeasepos.data.dto.TableMappers.run { response.toDomain() }
+        }
+    }
+
+    override suspend fun getSalesReports(period: String?): NetworkResult<List<com.zamulabs.dineeasepos.ui.reports.SalesRow>> {
+        return safeApiCall {
+            Napier.e("Fetching sales reports")
+            apiService.fetchSalesReports(period).map { com.zamulabs.dineeasepos.data.dto.ReportsMappers.run { it.toDomain() } }
+        }
+    }
+
+    override suspend fun getReceipt(orderId: String): NetworkResult<com.zamulabs.dineeasepos.ui.receipt.ReceiptUiState> {
+        return safeApiCall {
+            Napier.e("Fetching receipt for order $orderId")
+            val dto = apiService.fetchReceipt(orderId)
+            com.zamulabs.dineeasepos.data.dto.ReceiptMappers.run { dto.toUiState() }
+        }
+    }
+
+    override suspend fun processPayment(
+        orderId: String,
+        method: com.zamulabs.dineeasepos.ui.payment.paymentprocessing.PaymentMethod,
+        amountReceived: Double?,
+        gateway: String?,
+    ): NetworkResult<String> {
+        return safeApiCall {
+            Napier.e("Processing payment for order $orderId")
+            val request = com.zamulabs.dineeasepos.data.dto.CreatePaymentRequestDto(
+                orderId = orderId,
+                method = com.zamulabs.dineeasepos.data.dto.PaymentMappers.run { method.toDto() },
+                amountReceived = amountReceived,
+                gateway = gateway,
+            )
+            val response = apiService.createPayment(request)
+            response.status
+        }
+    }
+
+    // Auth
+    override suspend fun login(email: String, password: String): NetworkResult<String> {
+        return safeApiCall {
+            Napier.e("Logging in user $email")
+            val dto = apiService.login(
+                com.zamulabs.dineeasepos.data.dto.LoginRequestDto(email = email, password = password)
+            )
+            dto.token
+        }
+    }
+
+    override suspend fun forgotPassword(email: String): NetworkResult<String> {
+        return safeApiCall {
+            Napier.e("Requesting password reset for $email")
+            val dto = apiService.forgotPassword(
+                com.zamulabs.dineeasepos.data.dto.ForgotPasswordRequestDto(email = email)
+            )
+            dto.message
+        }
+    }
+
+    override suspend fun resetPassword(email: String, code: String, newPassword: String): NetworkResult<String> {
+        return safeApiCall {
+            Napier.e("Resetting password for $email")
+            val dto = apiService.resetPassword(
+                com.zamulabs.dineeasepos.data.dto.ResetPasswordRequestDto(
+                    email = email,
+                    code = code,
+                    newPassword = newPassword,
+                )
+            )
+            dto.message
         }
     }
 }

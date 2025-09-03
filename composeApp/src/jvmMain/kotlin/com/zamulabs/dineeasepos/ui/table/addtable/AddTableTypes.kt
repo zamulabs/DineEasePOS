@@ -15,6 +15,7 @@
  */
 package com.zamulabs.dineeasepos.ui.table.addtable
 
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Immutable
 
 @Immutable
@@ -26,6 +27,7 @@ import androidx.compose.runtime.Immutable
      val locations: List<String> = listOf("Select location", "Main Hall", "Patio", "VIP"),
      val loading: Boolean = false,
      val error: String? = null,
+     val snackbarHostState: SnackbarHostState = SnackbarHostState(),
  )
 
  sealed interface AddTableUiEvent {

@@ -16,6 +16,8 @@
 package com.zamulabs.dineeasepos.ui.user.adduser
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import org.koin.compose.koinInject
 
@@ -24,7 +26,15 @@ fun AddUserScreen(
     modifier: Modifier = Modifier,
     vm: AddUserViewModel = koinInject<AddUserViewModel>()
 ){
-    val state = vm.state
+    val state by vm.uiState.collectAsState()
+
+    com.zamulabs.dineeasepos.utils.ObserverAsEvent(flow = vm.uiEffect) { effect ->
+        when (effect) {
+            is AddUserUiEffect.ShowSnackBar -> { /* hook up snackbar if needed */ }
+            is AddUserUiEffect.ShowToast -> { /* TODO desktop toast */ }
+            AddUserUiEffect.NavigateBack -> { /* Navigation handled at caller via popBackStack if provided */ }
+        }
+    }
 
     AddUserScreenContent(
         state = state,

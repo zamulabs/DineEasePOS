@@ -65,6 +65,7 @@ fun NewOrderScreenContent(
 ){
     AppScaffold(
         modifier = modifier,
+        snackbarHostState = state.snackbarHostState,
         topBar = {
             BackBreadcrumb(
                 parentLabel = "Orders",

@@ -16,23 +16,39 @@
 package com.zamulabs.dineeasepos.ui.table.details
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.zamulabs.dineeasepos.data.DineEaseRepository
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
-class TableDetailsViewModel : ViewModel() {
+class TableDetailsViewModel(
+    private val repository: DineEaseRepository,
+) : ViewModel() {
     private val _uiState = MutableStateFlow(TableDetailsUiState())
-    val uiState: StateFlow<TableDetailsUiState> = _uiState.asStateFlow()
+    val uiState = _uiState.asStateFlow()
 
     private val _uiEffect = Channel<TableDetailsUiEffect>()
     val uiEffect = _uiEffect.receiveAsFlow()
 
+    fun updateUiState(block: TableDetailsUiState.() -> TableDetailsUiState) {
+        _uiState.update(block)
+    }
+
     fun onEvent(event: TableDetailsUiEvent) {
         when (event) {
-            TableDetailsUiEvent.OnClickCreateOrder -> { _uiEffect.trySend(TableDetailsUiEffect.NavigateToNewOrder) }
-            TableDetailsUiEvent.OnClickEditTable -> { _uiEffect.trySend(TableDetailsUiEffect.NavigateToEditTable) }
+            TableDetailsUiEvent.OnClickCreateOrder -> _uiEffect.trySend(TableDetailsUiEffect.NavigateToNewOrder)
+            TableDetailsUiEvent.OnClickEditTable -> _uiEffect.trySend(TableDetailsUiEffect.NavigateToEditTable)
+        }
+    }
+
+    fun loadTableDetails(tableId: String) {
+        // Placeholder for future repository-backed details fetching if API exists.
+        viewModelScope.launch {
+            // e.g., when(repository.getTableDetails(tableId)) { ... }
         }
     }
 }

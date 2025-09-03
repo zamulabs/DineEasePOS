@@ -16,9 +16,14 @@
 package com.zamulabs.dineeasepos.ui.payment.paymentprocessing
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 import com.zamulabs.dineeasepos.ui.navigation.Destinations
+import com.zamulabs.dineeasepos.utils.ObserverAsEvent
+import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 
 @Composable
@@ -27,16 +32,27 @@ fun PaymentProcessingScreen(
     modifier: Modifier = Modifier
 ) {
     val vm: PaymentProcessingViewModel = koinInject()
-    val state = vm.uiState
+    val state by vm.uiState.collectAsState()
+    val scope = rememberCoroutineScope()
+
+    ObserverAsEvent(vm.uiEffect) { effect ->
+        when (effect) {
+            is PaymentProcessingUiEffect.ShowSnackBar -> {
+                scope.launch { state.snackbarHostState.showSnackbar(effect.message) }
+            }
+            is PaymentProcessingUiEffect.NavigateToReceipt -> {
+                navController.navigate(Destinations.Receipt(orderId = effect.orderId))
+            }
+            PaymentProcessingUiEffect.NavigateBack -> {
+                navController.popBackStack()
+            }
+        }
+    }
+
     PaymentProcessingScreenContent(
         state = state,
-        onEvent = {
-            vm.onEvent(it)
-            if (it is PaymentProcessingUiEvent.OnProcessPayment) {
-                navController.navigate(Destinations.Receipt)
-            }
-        },
-        onBack = { navController.popBackStack() },
+        onEvent = { ev -> vm.onEvent(ev) },
+        onBack = { vm.onEvent(PaymentProcessingUiEvent.OnBack) },
         modifier = modifier
     )
 }

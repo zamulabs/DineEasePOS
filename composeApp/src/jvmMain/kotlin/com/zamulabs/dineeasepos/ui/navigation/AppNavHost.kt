@@ -19,6 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
+import androidx.navigation.toRoute
 import androidx.navigation.compose.composable
 import com.zamulabs.dineeasepos.ui.dashboard.DashboardScreen
 import com.zamulabs.dineeasepos.ui.login.LoginScreen
@@ -125,7 +126,8 @@ fun AppNavHost(
         }
 
         composable<Destinations.Receipt> {
-            ReceiptScreen(navController = navController)
+            val args = it.toRoute<Destinations.Receipt>()
+            ReceiptScreen(navController = navController, orderId = args.orderId)
         }
     }
 }

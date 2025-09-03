@@ -72,7 +72,6 @@ class MenuManagementViewModel(
                         it.copy(
                             isLoadingMenuItems = false,
                             errorLoadingMenuItems = result.errorMessage,
-                            items = sample(),
                         )
                     }
                 }
@@ -82,7 +81,7 @@ class MenuManagementViewModel(
                     _uiState.update {
                         it.copy(
                             isLoadingMenuItems = false,
-                            items = result.data ?: sample(),
+                            items = result.data.orEmpty(),
                         )
                     }
                 }
@@ -90,13 +89,4 @@ class MenuManagementViewModel(
         }
     }
 
-    private fun sample(): List<MenuItem> {
-        return listOf(
-            MenuItem("Spicy Chicken Sandwich", "Sandwiches", "$9.99", true),
-            MenuItem("Classic Cheeseburger", "Burgers", "$8.49", true),
-            MenuItem("Garden Salad", "Salads", "$7.99", true),
-            MenuItem("Fries", "Sides", "$3.49", true),
-            MenuItem("Chocolate Cake", "Desserts", "$5.99", false),
-        )
-    }
 }

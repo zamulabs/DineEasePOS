@@ -16,13 +16,17 @@
 package com.zamulabs.dineeasepos.ui.menu.addmenu
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
-class AddMenuItemViewModel : ViewModel() {
+class AddMenuItemViewModel(
+    private val repository: com.zamulabs.dineeasepos.data.DineEaseRepository,
+) : ViewModel() {
     private val _uiState = MutableStateFlow(AddMenuItemUiState())
     val uiState = _uiState.asStateFlow()
 
@@ -43,7 +47,49 @@ class AddMenuItemViewModel : ViewModel() {
             is AddMenuItemUiEvent.OnPrepTimeChanged -> update { copy(prepTimeMinutes = event.value.filter { it.isDigit() }.take(3)) }
             is AddMenuItemUiEvent.OnIngredientsChanged -> update { copy(ingredients = event.value) }
             AddMenuItemUiEvent.OnCancel -> _uiEffect.trySend(AddMenuItemUiEffect.NavigateBack)
-            AddMenuItemUiEvent.OnSave -> _uiEffect.trySend(AddMenuItemUiEffect.ShowToast("Saved"))
+            AddMenuItemUiEvent.OnSave -> save()
+        }
+    }
+
+    private fun save() {
+        val state = _uiState.value
+        val name = state.name.trim()
+        val priceDouble = state.price.toDoubleOrNull()
+        val category = state.category.takeIf { it.isNotBlank() && it != state.categories.first() }
+        val active = when (state.status) {
+            "Active" -> true
+            "Inactive" -> false
+            else -> null
+        }
+
+        if (name.isEmpty() || priceDouble == null || category == null || active == null) {
+            _uiEffect.trySend(AddMenuItemUiEffect.ShowSnackBar("Please fill all required fields"))
+            return
+        }
+
+        val prepMinutes = state.prepTimeMinutes.toIntOrNull()
+        update { copy(isSaving = true, errorMessage = null) }
+
+        viewModelScope.launch {
+            when (val result = repository.addMenuItem(
+                name = name,
+                description = state.description.ifBlank { null },
+                price = priceDouble,
+                category = category,
+                active = active,
+                prepTimeMinutes = prepMinutes,
+                ingredients = state.ingredients.ifBlank { null },
+            )) {
+                is com.zamulabs.dineeasepos.utils.NetworkResult.Success -> {
+                    update { copy(isSaving = false) }
+                    _uiEffect.trySend(AddMenuItemUiEffect.ShowSnackBar("Menu item saved"))
+                    _uiEffect.trySend(AddMenuItemUiEffect.NavigateBack)
+                }
+                is com.zamulabs.dineeasepos.utils.NetworkResult.Error -> {
+                    update { copy(isSaving = false, errorMessage = result.errorMessage) }
+                    _uiEffect.trySend(AddMenuItemUiEffect.ShowSnackBar(result.errorMessage ?: "Failed to save"))
+                }
+            }
         }
     }
 }

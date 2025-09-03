@@ -16,16 +16,21 @@
 package com.zamulabs.dineeasepos.ui.receipt
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 
 @Composable
 fun ReceiptScreen(
     navController: NavController,
+    orderId: String,
     modifier: Modifier = Modifier,
 ) {
     val vm: ReceiptViewModel = org.koin.compose.koinInject()
-    val state = vm.uiState
+    val state = vm.uiState.collectAsState().value
+    androidx.compose.runtime.LaunchedEffect(orderId) {
+        vm.loadReceipt(orderId)
+    }
     ReceiptScreenContent(
         state = state,
         onEvent = vm::onEvent,

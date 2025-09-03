@@ -15,25 +15,69 @@
  */
 package com.zamulabs.dineeasepos.ui.user.adduser
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.zamulabs.dineeasepos.data.DineEaseRepository
+import com.zamulabs.dineeasepos.utils.NetworkResult
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
-class AddUserViewModel : ViewModel() {
-    var state by mutableStateOf(AddUserUiState())
-        private set
+class AddUserViewModel(
+    private val repository: DineEaseRepository,
+) : ViewModel() {
+    private val _uiState = MutableStateFlow(AddUserUiState())
+    val uiState = _uiState.asStateFlow()
+
+    private val _uiEffect = Channel<AddUserUiEffect>()
+    val uiEffect = _uiEffect.receiveAsFlow()
+
+    private fun update(block: AddUserUiState.() -> AddUserUiState) {
+        _uiState.update(block)
+    }
 
     fun onEvent(event: AddUserUiEvent) {
         when (event) {
-            is AddUserUiEvent.OnNameChanged -> state = state.copy(name = event.value)
-            is AddUserUiEvent.OnEmailChanged -> state = state.copy(email = event.value)
-            is AddUserUiEvent.OnRoleChanged -> state = state.copy(role = event.value)
-            is AddUserUiEvent.OnPasswordChanged -> state = state.copy(password = event.value)
-            is AddUserUiEvent.OnConfirmPasswordChanged -> state = state.copy(confirmPassword = event.value)
-            is AddUserUiEvent.OnActiveChanged -> state = state.copy(isActive = event.value)
-            AddUserUiEvent.OnCancel -> { /* no-op */ }
-            AddUserUiEvent.OnSave -> { /* TODO persist */ }
+            is AddUserUiEvent.OnNameChanged -> update { copy(name = event.value) }
+            is AddUserUiEvent.OnEmailChanged -> update { copy(email = event.value) }
+            is AddUserUiEvent.OnRoleChanged -> update { copy(role = event.value) }
+            is AddUserUiEvent.OnPasswordChanged -> update { copy(password = event.value) }
+            is AddUserUiEvent.OnConfirmPasswordChanged -> update { copy(confirmPassword = event.value) }
+            is AddUserUiEvent.OnActiveChanged -> update { copy(isActive = event.value) }
+            AddUserUiEvent.OnCancel -> _uiEffect.trySend(AddUserUiEffect.NavigateBack)
+            AddUserUiEvent.OnSave -> saveUser()
+        }
+    }
+
+    private fun saveUser() {
+        val s = uiState.value
+        if (s.name.isBlank() || s.email.isBlank() || s.role.isBlank() || s.password.isBlank()) {
+            _uiEffect.trySend(AddUserUiEffect.ShowSnackBar("Please fill all required fields"))
+            return
+        }
+        if (s.password != s.confirmPassword) {
+            _uiEffect.trySend(AddUserUiEffect.ShowSnackBar("Passwords do not match"))
+            return
+        }
+        viewModelScope.launch {
+            when (val result = repository.addUser(
+                name = s.name,
+                email = s.email,
+                role = s.role,
+                password = s.password,
+                isActive = s.isActive,
+            )) {
+                is NetworkResult.Error -> {
+                    _uiEffect.trySend(AddUserUiEffect.ShowSnackBar(result.errorMessage ?: "Failed to add user"))
+                }
+                is NetworkResult.Success -> {
+                    _uiEffect.trySend(AddUserUiEffect.ShowToast("User added"))
+                    _uiEffect.trySend(AddUserUiEffect.NavigateBack)
+                }
+            }
         }
     }
 }
