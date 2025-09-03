@@ -16,18 +16,23 @@
 package com.zamulabs.dineeasepos.ui.table.details
 
 import androidx.lifecycle.ViewModel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 
 class TableDetailsViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(TableDetailsUiState())
     val uiState: StateFlow<TableDetailsUiState> = _uiState.asStateFlow()
 
+    private val _uiEffect = Channel<TableDetailsUiEffect>()
+    val uiEffect = _uiEffect.receiveAsFlow()
+
     fun onEvent(event: TableDetailsUiEvent) {
         when (event) {
-            TableDetailsUiEvent.OnClickCreateOrder -> { /* navigation handled by screen */ }
-            TableDetailsUiEvent.OnClickEditTable -> { /* navigation handled by screen */ }
+            TableDetailsUiEvent.OnClickCreateOrder -> { _uiEffect.trySend(TableDetailsUiEffect.NavigateToNewOrder) }
+            TableDetailsUiEvent.OnClickEditTable -> { _uiEffect.trySend(TableDetailsUiEffect.NavigateToEditTable) }
         }
     }
 }

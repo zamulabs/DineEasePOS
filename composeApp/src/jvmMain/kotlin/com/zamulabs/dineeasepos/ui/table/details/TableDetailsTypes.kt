@@ -45,3 +45,11 @@ sealed interface TableDetailsUiEvent {
 
     data object OnClickCreateOrder : TableDetailsUiEvent
 }
+
+sealed class TableDetailsUiEffect {
+    data class ShowToast(val message: String) : TableDetailsUiEffect()
+    data class ShowSnackBar(val message: String) : TableDetailsUiEffect()
+    data object NavigateBack : TableDetailsUiEffect()
+    data object NavigateToNewOrder : TableDetailsUiEffect()
+    data object NavigateToEditTable : TableDetailsUiEffect()
+}
