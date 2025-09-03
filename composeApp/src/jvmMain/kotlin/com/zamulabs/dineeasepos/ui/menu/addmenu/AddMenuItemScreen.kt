@@ -16,7 +16,10 @@
 package com.zamulabs.dineeasepos.ui.menu.addmenu
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.navigation.NavController
+import com.zamulabs.dineeasepos.utils.ObserverAsEvent
 import org.koin.compose.koinInject
 
 @Composable
@@ -24,10 +27,20 @@ fun AddMenuItemScreen(
     navController: NavController,
     vm: AddMenuItemViewModel = koinInject<AddMenuItemViewModel>()
 ){
+    val state by vm.uiState.collectAsState()
+
+    ObserverAsEvent(flow = vm.uiEffect) { effect ->
+        when (effect) {
+            is AddMenuItemUiEffect.ShowSnackBar -> {}
+            is AddMenuItemUiEffect.ShowToast -> {}
+            AddMenuItemUiEffect.NavigateBack -> navController.popBackStack()
+        }
+    }
+
     AddMenuItemScreenContent(
-        state = vm.uiState,
+        state = state,
         onEvent = vm::onEvent,
-        onSave = { navController.popBackStack() },
-        onCancel = { navController.popBackStack() }
+        onSave = { vm.onEvent(AddMenuItemUiEvent.OnSave) },
+        onCancel = { vm.onEvent(AddMenuItemUiEvent.OnCancel) }
     )
 }

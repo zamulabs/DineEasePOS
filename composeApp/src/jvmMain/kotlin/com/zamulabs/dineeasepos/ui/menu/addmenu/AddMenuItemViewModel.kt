@@ -15,30 +15,35 @@
  */
 package com.zamulabs.dineeasepos.ui.menu.addmenu
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.update
 
 class AddMenuItemViewModel : ViewModel() {
-    var uiState by mutableStateOf(AddMenuItemUiState())
-        private set
+    private val _uiState = MutableStateFlow(AddMenuItemUiState())
+    val uiState = _uiState.asStateFlow()
+
+    private val _uiEffect = Channel<AddMenuItemUiEffect>()
+    val uiEffect = _uiEffect.receiveAsFlow()
+
+    private fun update(block: AddMenuItemUiState.() -> AddMenuItemUiState) {
+        _uiState.update(block)
+    }
 
     fun onEvent(event: AddMenuItemUiEvent) {
         when (event) {
-            is AddMenuItemUiEvent.OnNameChanged -> uiState = uiState.copy(name = event.value)
-            is AddMenuItemUiEvent.OnDescriptionChanged -> uiState = uiState.copy(description = event.value)
-            is AddMenuItemUiEvent.OnPriceChanged ->
-                uiState =
-                    uiState.copy(
-                        price = event.value.filter { it.isDigit() || it == '.' }.take(10),
-                    )
-            is AddMenuItemUiEvent.OnCategoryChanged -> uiState = uiState.copy(category = event.value)
-            is AddMenuItemUiEvent.OnStatusChanged -> uiState = uiState.copy(status = event.value)
-            is AddMenuItemUiEvent.OnPrepTimeChanged -> uiState = uiState.copy(prepTimeMinutes = event.value.filter { it.isDigit() }.take(3))
-            is AddMenuItemUiEvent.OnIngredientsChanged -> uiState = uiState.copy(ingredients = event.value)
-            AddMenuItemUiEvent.OnCancel -> {}
-            AddMenuItemUiEvent.OnSave -> {}
+            is AddMenuItemUiEvent.OnNameChanged -> update { copy(name = event.value) }
+            is AddMenuItemUiEvent.OnDescriptionChanged -> update { copy(description = event.value) }
+            is AddMenuItemUiEvent.OnPriceChanged -> update { copy(price = event.value.filter { it.isDigit() || it == '.' }.take(10)) }
+            is AddMenuItemUiEvent.OnCategoryChanged -> update { copy(category = event.value) }
+            is AddMenuItemUiEvent.OnStatusChanged -> update { copy(status = event.value) }
+            is AddMenuItemUiEvent.OnPrepTimeChanged -> update { copy(prepTimeMinutes = event.value.filter { it.isDigit() }.take(3)) }
+            is AddMenuItemUiEvent.OnIngredientsChanged -> update { copy(ingredients = event.value) }
+            AddMenuItemUiEvent.OnCancel -> _uiEffect.trySend(AddMenuItemUiEffect.NavigateBack)
+            AddMenuItemUiEvent.OnSave -> _uiEffect.trySend(AddMenuItemUiEffect.ShowToast("Saved"))
         }
     }
 }

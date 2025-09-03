@@ -63,3 +63,9 @@ sealed interface AddMenuItemUiEvent {
 
     data object OnSave : AddMenuItemUiEvent
 }
+
+sealed class AddMenuItemUiEffect {
+    data class ShowToast(val message: String) : AddMenuItemUiEffect()
+    data class ShowSnackBar(val message: String) : AddMenuItemUiEffect()
+    data object NavigateBack : AddMenuItemUiEffect()
+}

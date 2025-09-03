@@ -155,17 +155,13 @@ fun AddMenuItemScreenContent(
                 Spacer(Modifier.height(12.dp))
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                     AppOutlinedButton(onClick = {
-                        onCancel(); onEvent(
-                        AddMenuItemUiEvent.OnCancel
-                    )
+                        onCancel()
                     }) {
                         Text("Cancel")
                     }
                     Spacer(Modifier.width(12.dp))
                     AppButton(onClick = {
-                        onEvent(
-                            AddMenuItemUiEvent.OnSave
-                        ); onSave()
+                        onSave()
                     }, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF38E07B))) {
                         Text("Save", color = Color(0xFF122118))
                     }
