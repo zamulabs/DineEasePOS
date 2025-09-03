@@ -15,17 +15,16 @@
  */
 package com.zamulabs.dineeasepos.ui.table
 
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.zamulabs.dineeasepos.ui.navigation.Destinations
 import org.koin.compose.koinInject
+import kotlinx.coroutines.launch
 
 @Composable
 fun TableManagementScreen(
@@ -33,15 +32,27 @@ fun TableManagementScreen(
     modifier: Modifier = Modifier,
     vm: TableManagementViewModel = koinInject<TableManagementViewModel>(),
 ) {
-    Surface(color = MaterialTheme.colorScheme.background, modifier = modifier.fillMaxSize()) {
-        val state = vm.uiState
-        TableManagementScreenContent(state = state, onEvent = { ev ->
-            when(ev){
-                is TableManagementUiEvent.OnClickAddTable -> navController.navigate(Destinations.AddTable)
-                is TableManagementUiEvent.OnClickViewDetails -> navController.navigate(Destinations.TableDetails)
-                is TableManagementUiEvent.OnSearch -> { /* optional search handling in VM */ }
-            }
-            vm.onEvent(ev)
-        })
+    val state by vm.uiState.collectAsState()
+
+    LaunchedEffect(vm) {
+        vm.loadTables()
     }
+
+    val scope = rememberCoroutineScope()
+    com.zamulabs.dineeasepos.utils.ObserverAsEvent(vm.uiEffect) { effect ->
+        when (effect) {
+            is TableManagementUiEffect.ShowSnackBar -> scope.launch { state.snackbarHostState.showSnackbar(effect.message) }
+            is TableManagementUiEffect.ShowToast -> {}
+            TableManagementUiEffect.NavigateBack -> navController.popBackStack()
+        }
+    }
+
+    TableManagementScreenContent(state = state, onEvent = { ev ->
+        when(ev){
+            is TableManagementUiEvent.OnClickAddTable -> navController.navigate(Destinations.AddTable)
+            is TableManagementUiEvent.OnClickViewDetails -> navController.navigate(Destinations.TableDetails)
+            is TableManagementUiEvent.OnSearch -> { /* optional search handling in VM */ }
+        }
+        vm.onEvent(ev)
+    })
 }

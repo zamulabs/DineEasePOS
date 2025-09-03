@@ -15,24 +15,65 @@
  */
 package com.zamulabs.dineeasepos.ui.payment
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.zamulabs.dineeasepos.data.DineEaseRepository
+import com.zamulabs.dineeasepos.utils.NetworkResult
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
-class PaymentsViewModel : ViewModel() {
-    var uiState by mutableStateOf(PaymentsUiState(items = sample()))
-        private set
+class PaymentsViewModel(
+    private val repository: DineEaseRepository,
+) : ViewModel() {
+    private val _uiState = MutableStateFlow(PaymentsUiState())
+    val uiState = _uiState.asStateFlow()
+
+    private val _uiEffect = Channel<PaymentsUiEffect>()
+    val uiEffect = _uiEffect.receiveAsFlow()
+
+    fun updateUiState(block: PaymentsUiState.() -> PaymentsUiState) {
+        _uiState.update(block)
+    }
 
     fun onEvent(event: PaymentsUiEvent) {
         when (event) {
-            is PaymentsUiEvent.OnFilterChanged -> uiState = uiState.copy(filter = event.value)
+            is PaymentsUiEvent.OnFilterChanged -> updateUiState { copy(filter = event.value) }
             PaymentsUiEvent.OnExport -> { /* TODO: export */ }
+        }
+    }
+
+    fun loadPayments() {
+        viewModelScope.launch {
+            updateUiState { copy(isLoadingPayments = true) }
+            when (val result = repository.getPayments()) {
+                is NetworkResult.Error -> {
+                    updateUiState {
+                        copy(
+                            isLoadingPayments = false,
+                            errorLoadingPayments = result.errorMessage,
+                            items = samplePayments(),
+                        )
+                    }
+                }
+
+                is NetworkResult.Success -> {
+                    updateUiState {
+                        copy(
+                            isLoadingPayments = false,
+                            items = result.data ?: samplePayments(),
+                        )
+                    }
+                }
+            }
         }
     }
 }
 
-private fun sample(): List<PaymentItem> =
+private fun samplePayments(): List<PaymentItem> =
     listOf(
         PaymentItem("Jul 20, 2024", "ORD-20240720-001", "Credit Card", "$55.75"),
         PaymentItem("Jul 19, 2024", "ORD-20240719-002", "Cash", "$22.50"),

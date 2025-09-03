@@ -18,11 +18,12 @@ package com.zamulabs.dineeasepos.ui.reports
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import org.koin.compose.koinInject
 
 @Composable
 fun ReportsScreen(
 ){
-    val vm = ReportsViewModel()
+    val vm: ReportsViewModel = koinInject()
     val state by vm.uiState.collectAsState()
     ReportsScreenContent(state = state, onEvent = vm::onEvent)
 }

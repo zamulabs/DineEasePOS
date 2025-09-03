@@ -15,21 +15,25 @@
  */
 package com.zamulabs.dineeasepos.ui.settings
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.update
 
 class SettingsViewModel : ViewModel() {
-    var uiState by mutableStateOf(SettingsUiState())
-        private set
+    private val _uiState = MutableStateFlow(SettingsUiState())
+    val uiState = _uiState.asStateFlow()
 
     fun onEvent(event: SettingsUiEvent) {
         when (event) {
-            is SettingsUiEvent.OnTabSelected -> uiState = uiState.copy(activeTab = event.tab)
+            is SettingsUiEvent.OnTabSelected -> _uiState.update { it.copy(activeTab = event.tab) }
             SettingsUiEvent.OnAddTaxRate -> {
-                val list = uiState.taxRates + TaxRate("New tax", "0%", false)
-                uiState = uiState.copy(taxRates = list)
+                _uiState.update {
+                    val list = it.taxRates + TaxRate("New tax", "0%", false)
+                    it.copy(taxRates = list)
+                }
             }
         }
     }

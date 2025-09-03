@@ -16,13 +16,23 @@
 package com.zamulabs.dineeasepos.ui.dashboard
 
 import androidx.lifecycle.ViewModel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.update
 
 class DashboardViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(DashboardUiState())
     val uiState: StateFlow<DashboardUiState> = _uiState.asStateFlow()
+
+    private val _uiEffect = Channel<DashboardUiEffect>()
+    val uiEffect = _uiEffect.receiveAsFlow()
+
+    fun updateUiState(block: DashboardUiState.() -> DashboardUiState) {
+        _uiState.update(block)
+    }
 
     fun onEvent(event: DashboardUiEvent) {
         when (event) {
@@ -30,7 +40,7 @@ class DashboardViewModel : ViewModel() {
         }
     }
 
-    fun refresh() {
-        _uiState.value = _uiState.value.copy()
+    private fun refresh() {
+        updateUiState { copy() }
     }
 }

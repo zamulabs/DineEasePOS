@@ -15,10 +15,21 @@
  */
 package com.zamulabs.dineeasepos.data
 
-import com.zamulabs.dineeasepos.data.dto.MenuResponseDto
 import com.zamulabs.dineeasepos.ui.menu.MenuItem
+import com.zamulabs.dineeasepos.ui.order.Order
+import com.zamulabs.dineeasepos.ui.payment.PaymentItem
 import com.zamulabs.dineeasepos.utils.NetworkResult
 
 interface DineEaseRepository {
     suspend fun getMenu(): NetworkResult<List<MenuItem>>
+    suspend fun getOrders(): NetworkResult<List<Order>>
+    suspend fun getTables(): NetworkResult<List<com.zamulabs.dineeasepos.ui.table.DiningTable>>
+    suspend fun getPayments(): NetworkResult<List<PaymentItem>>
+
+    suspend fun addTable(
+        number: String,
+        name: String?,
+        capacity: Int,
+        location: String?
+    ): NetworkResult<com.zamulabs.dineeasepos.ui.table.DiningTable>
 }

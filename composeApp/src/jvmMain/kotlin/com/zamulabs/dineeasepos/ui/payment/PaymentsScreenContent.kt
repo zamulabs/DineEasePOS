@@ -59,6 +59,7 @@ fun PaymentsScreenContent(
     modifier: Modifier = Modifier,
 ){
     AppScaffold(
+        snackbarHostState = state.snackbarHostState,
         modifier = modifier,
         topBar = { AppScreenTopBar(title = "Payments") },
         contentList = {

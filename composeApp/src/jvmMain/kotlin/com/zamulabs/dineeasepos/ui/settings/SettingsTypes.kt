@@ -15,6 +15,8 @@
  */
 package com.zamulabs.dineeasepos.ui.settings
 
+import androidx.compose.material3.SnackbarHostState
+
 // UiState
 data class SettingsUiState(
     val activeTab: SettingsTab = SettingsTab.Taxes,
@@ -24,6 +26,7 @@ data class SettingsUiState(
             TaxRate("City tax", "1.5%", true),
             TaxRate("County tax", "0.75%", false),
         ),
+    val snackbarHostState: SnackbarHostState = SnackbarHostState(),
 )
 
 enum class SettingsTab { General, Payments, Receipts, Taxes, System }

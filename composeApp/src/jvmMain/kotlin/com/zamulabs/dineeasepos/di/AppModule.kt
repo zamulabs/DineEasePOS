@@ -28,7 +28,9 @@ import com.zamulabs.dineeasepos.ui.order.OrderManagementViewModel
 import com.zamulabs.dineeasepos.ui.order.details.OrderDetailsViewModel
 import com.zamulabs.dineeasepos.ui.order.neworder.NewOrderViewModel
 import com.zamulabs.dineeasepos.ui.payment.paymentprocessing.PaymentProcessingViewModel
+import com.zamulabs.dineeasepos.ui.payment.PaymentsViewModel
 import com.zamulabs.dineeasepos.ui.receipt.ReceiptViewModel
+import com.zamulabs.dineeasepos.ui.reports.ReportsViewModel
 import com.zamulabs.dineeasepos.ui.settings.SettingsViewModel
 import com.zamulabs.dineeasepos.ui.table.TableManagementViewModel
 import com.zamulabs.dineeasepos.ui.table.addtable.AddTableViewModel
@@ -51,6 +53,7 @@ val viewModelModule =
         singleOf(::OrderDetailsViewModel)
         singleOf(::TableDetailsViewModel)
         singleOf(::PaymentProcessingViewModel)
+        singleOf(::PaymentsViewModel)
         singleOf(::SettingsViewModel)
         singleOf(::UserManagementViewModel)
         singleOf(::AddUserViewModel)

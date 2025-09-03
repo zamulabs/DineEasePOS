@@ -41,6 +41,7 @@ fun SettingsScreenContent(
     modifier: Modifier = Modifier,
 ) {
     AppScaffold(
+        snackbarHostState = state.snackbarHostState,
         modifier = modifier,
         topBar = { AppScreenTopBar(title = "Settings") },
         contentList = {

@@ -15,6 +15,7 @@
  */
 package com.zamulabs.dineeasepos.ui.reports
 
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Immutable
 
 @Immutable
@@ -35,6 +36,7 @@ data class ReportsUiState(
     val totalSales: String = "$25,450",
     val delta: String = "+12%",
     val rows: List<SalesRow> = emptyList(),
+    val snackbarHostState: SnackbarHostState = SnackbarHostState(),
 )
 
 sealed interface ReportsUiEvent {

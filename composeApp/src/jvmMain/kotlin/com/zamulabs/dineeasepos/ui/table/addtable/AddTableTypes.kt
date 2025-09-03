@@ -49,3 +49,9 @@ sealed interface AddTableUiEvent {
 
     data object OnSave : AddTableUiEvent
 }
+
+sealed class AddTableUiEffect {
+    data class ShowToast(val message: String) : AddTableUiEffect()
+    data class ShowSnackBar(val message: String) : AddTableUiEffect()
+    data object NavigateBack : AddTableUiEffect()
+}

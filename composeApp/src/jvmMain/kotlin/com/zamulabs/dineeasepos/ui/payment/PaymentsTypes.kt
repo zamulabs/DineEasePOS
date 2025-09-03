@@ -15,6 +15,7 @@
  */
 package com.zamulabs.dineeasepos.ui.payment
 
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Immutable
 
 @Immutable
@@ -30,6 +31,9 @@ data class PaymentItem(
 data class PaymentsUiState(
     val items: List<PaymentItem> = emptyList(),
     val filter: String = "",
+    val isLoadingPayments: Boolean = false,
+    val errorLoadingPayments: String? = null,
+    val snackbarHostState: SnackbarHostState = SnackbarHostState(),
 )
 
 sealed interface PaymentsUiEvent {
@@ -38,4 +42,10 @@ sealed interface PaymentsUiEvent {
     ) : PaymentsUiEvent
 
     data object OnExport : PaymentsUiEvent
+}
+
+sealed class PaymentsUiEffect {
+    data class ShowToast(val message: String) : PaymentsUiEffect()
+    data class ShowSnackBar(val message: String) : PaymentsUiEffect()
+    data object NavigateBack : PaymentsUiEffect()
 }

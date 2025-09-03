@@ -16,9 +16,38 @@
 package com.zamulabs.dineeasepos.ui.payment
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Modifier
+import org.koin.compose.koinInject
+import com.zamulabs.dineeasepos.utils.ObserverAsEvent
+import kotlinx.coroutines.launch
 
 @Composable
-fun PaymentsScreen(){
-    val vm = PaymentsViewModel()
-    PaymentsScreenContent(state = vm.uiState, onEvent = vm::onEvent)
+fun PaymentsScreen(
+    modifier: Modifier = Modifier,
+    viewModel: PaymentsViewModel = koinInject<PaymentsViewModel>()
+){
+    val state by viewModel.uiState.collectAsState()
+    val scope = rememberCoroutineScope()
+
+    LaunchedEffect(viewModel){
+        viewModel.loadPayments()
+    }
+
+    ObserverAsEvent(viewModel.uiEffect){ effect ->
+        when(effect){
+            is PaymentsUiEffect.ShowSnackBar -> scope.launch { state.snackbarHostState.showSnackbar(effect.message) }
+            is PaymentsUiEffect.ShowToast -> {}
+            PaymentsUiEffect.NavigateBack -> {}
+        }
+    }
+
+    PaymentsScreenContent(
+        state = state,
+        onEvent = { ev -> viewModel.onEvent(ev) },
+        modifier = modifier,
+    )
 }

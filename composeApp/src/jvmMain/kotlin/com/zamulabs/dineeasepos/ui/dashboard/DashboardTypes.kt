@@ -15,7 +15,11 @@
  */
 package com.zamulabs.dineeasepos.ui.dashboard
 
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.runtime.Immutable
+
 // UI state for the Dashboard
+@Immutable
 data class DashboardUiState(
     val totalSalesToday: String = "$2,500",
     val ordersProcessed: String = "150",
@@ -23,10 +27,17 @@ data class DashboardUiState(
     val cashVsOnline: String = "60% / 40%",
     val topSelling: List<TopSellingItem> = sampleTopSelling,
     val recentOrders: List<RecentOrder> = sampleRecentOrders,
+    val snackbarHostState: SnackbarHostState = SnackbarHostState(),
 )
 
 sealed interface DashboardUiEvent {
     data object Refresh : DashboardUiEvent
+}
+
+sealed class DashboardUiEffect {
+    data class ShowToast(val message: String) : DashboardUiEffect()
+    data class ShowSnackBar(val message: String) : DashboardUiEffect()
+    data object NavigateBack : DashboardUiEffect()
 }
 
 data class TopSellingItem(

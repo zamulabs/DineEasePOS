@@ -15,46 +15,86 @@
  */
 package com.zamulabs.dineeasepos.ui.order
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.zamulabs.dineeasepos.data.DineEaseRepository
+import com.zamulabs.dineeasepos.utils.NetworkResult
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
-class OrderManagementViewModel : ViewModel() {
-    var uiState by mutableStateOf(sampleState())
-        private set
+class OrderManagementViewModel(
+    private val repository: DineEaseRepository,
+) : ViewModel() {
+    private val _uiState = MutableStateFlow(OrderManagementUiState())
+    val uiState = _uiState.asStateFlow()
+
+    private val _uiEffect = Channel<OrderManagementUiEffect>()
+    val uiEffect = _uiEffect.receiveAsFlow()
+
+    fun updateUiState(block: OrderManagementUiState.() -> OrderManagementUiState) {
+        _uiState.update(block)
+    }
 
     fun onEvent(event: OrderManagementUiEvent) {
         when (event) {
             OrderManagementUiEvent.OnClickNewOrder -> {
-                // Future: navigate or create new order
+                // Navigation handled by Screen via event
             }
+
             is OrderManagementUiEvent.OnSearch -> {
-                uiState = uiState.copy(searchString = event.query)
+                updateUiState { copy(searchString = event.query) }
             }
+
             is OrderManagementUiEvent.OnTabSelected -> {
-                uiState = uiState.copy(selectedTab = event.tab)
+                updateUiState { copy(selectedTab = event.tab) }
             }
+
             is OrderManagementUiEvent.OnClickViewDetails -> {
-                // Future: handle selection or navigation via effect/state
+                // Navigation handled by Screen
             }
         }
     }
 
-    private fun sampleState(): OrderManagementUiState {
-        val items =
-            listOf(
-                Order("#12345", "Table 5", OrderStatus.Open, "$50.00", "10:00 AM"),
-                Order("#12346", "Table 2", OrderStatus.Completed, "$75.00", "11:30 AM"),
-                Order("#12347", "Table 8", OrderStatus.Open, "$30.00", "12:15 PM"),
-                Order("#12348", "Table 1", OrderStatus.Completed, "$100.00", "1:45 PM"),
-                Order("#12349", "Table 3", OrderStatus.Open, "$45.00", "2:30 PM"),
-                Order("#12350", "Table 6", OrderStatus.Completed, "$60.00", "3:00 PM"),
-                Order("#12351", "Table 4", OrderStatus.Open, "$80.00", "4:15 PM"),
-                Order("#12352", "Table 7", OrderStatus.Completed, "$90.00", "5:00 PM"),
-                Order("#12353", "Table 9", OrderStatus.Open, "$25.00", "5:45 PM"),
-                Order("#12354", "Table 10", OrderStatus.Completed, "$120.00", "6:30 PM"),
-            )
-        return OrderManagementUiState(orders = items)
+    fun loadOrders() {
+        viewModelScope.launch {
+            updateUiState { copy(isLoadingOrders = true) }
+            when (val result = repository.getOrders()) {
+                is NetworkResult.Error -> {
+                    updateUiState {
+                        copy(
+                            isLoadingOrders = false,
+                            errorLoadingOrders = result.errorMessage,
+                            orders = sampleOrders(),
+                        )
+                    }
+                }
+
+                is NetworkResult.Success -> {
+                    updateUiState {
+                        copy(
+                            isLoadingOrders = false,
+                            orders = result.data ?: sampleOrders(),
+                        )
+                    }
+                }
+            }
+        }
     }
+
+    private fun sampleOrders(): List<Order> = listOf(
+        Order("#12345", "Table 5", OrderStatus.Open, "$50.00", "10:00 AM"),
+        Order("#12346", "Table 2", OrderStatus.Completed, "$75.00", "11:30 AM"),
+        Order("#12347", "Table 8", OrderStatus.Open, "$30.00", "12:15 PM"),
+        Order("#12348", "Table 1", OrderStatus.Completed, "$100.00", "1:45 PM"),
+        Order("#12349", "Table 3", OrderStatus.Open, "$45.00", "2:30 PM"),
+        Order("#12350", "Table 6", OrderStatus.Completed, "$60.00", "3:00 PM"),
+        Order("#12351", "Table 4", OrderStatus.Open, "$80.00", "4:15 PM"),
+        Order("#12352", "Table 7", OrderStatus.Completed, "$90.00", "5:00 PM"),
+        Order("#12353", "Table 9", OrderStatus.Open, "$25.00", "5:45 PM"),
+        Order("#12354", "Table 10", OrderStatus.Completed, "$120.00", "6:30 PM"),
+    )
 }

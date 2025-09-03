@@ -16,6 +16,8 @@
 package com.zamulabs.dineeasepos.ui.settings
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.navigation.NavController
 import org.koin.compose.koinInject
 
@@ -24,6 +26,6 @@ fun SettingsScreen(
     navController: NavController,
     viewModel: SettingsViewModel = koinInject()
 ){
-    val state = viewModel.uiState
+    val state by viewModel.uiState.collectAsState()
     SettingsScreenContent(state = state, onEvent = viewModel::onEvent)
 }

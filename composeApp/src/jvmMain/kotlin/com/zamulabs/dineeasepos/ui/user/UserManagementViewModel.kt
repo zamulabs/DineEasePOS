@@ -15,35 +15,45 @@
  */
 package com.zamulabs.dineeasepos.ui.user
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.update
 
 class UserManagementViewModel : ViewModel() {
-    var uiState by mutableStateOf(
+    private val _uiState = MutableStateFlow(
         UserManagementUiState(
-            users =
-                listOf(
-                    User("Sophia Bennett", "Manager", true),
-                    User("Ethan Carter", "Server", true),
-                    User("Olivia Davis", "Chef", true),
-                    User("Liam Foster", "Bartender", false),
-                    User("Ava Green", "Hostess", true),
-                ),
+            users = listOf(
+                User("Sophia Bennett", "Manager", true),
+                User("Ethan Carter", "Server", true),
+                User("Olivia Davis", "Chef", true),
+                User("Liam Foster", "Bartender", false),
+                User("Ava Green", "Hostess", true),
+            ),
         ),
     )
-        private set
+    val uiState = _uiState.asStateFlow()
+
+    private val _uiEffect = Channel<UserManagementUiEffect>()
+    val uiEffect = _uiEffect.receiveAsFlow()
+
+    fun updateUiState(block: UserManagementUiState.() -> UserManagementUiState) {
+        _uiState.update(block)
+    }
 
     fun onEvent(event: UserManagementUiEvent) {
         when (event) {
             is UserManagementUiEvent.OnClickAddUser -> { /* route from Screen */ }
             is UserManagementUiEvent.OnEdit -> { /* route from Screen */ }
             is UserManagementUiEvent.OnToggleActive -> {
-                val list = uiState.users.toMutableList()
-                val u = list[event.index]
-                list[event.index] = u.copy(active = !u.active)
-                uiState = uiState.copy(users = list)
+                updateUiState {
+                    val list = users.toMutableList()
+                    val u = list[event.index]
+                    list[event.index] = u.copy(active = !u.active)
+                    copy(users = list)
+                }
             }
         }
     }

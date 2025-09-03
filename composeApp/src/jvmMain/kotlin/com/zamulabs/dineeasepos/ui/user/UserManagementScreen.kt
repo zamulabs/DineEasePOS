@@ -16,6 +16,9 @@
 package com.zamulabs.dineeasepos.ui.user
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import com.zamulabs.dineeasepos.utils.ObserverAsEvent
 import org.koin.compose.koinInject
 
 @Composable
@@ -24,7 +27,16 @@ fun UserManagementScreen(
     onAddUser: () -> Unit = {},
     viewModel: UserManagementViewModel = koinInject<UserManagementViewModel>()
 ){
-    val state = viewModel.uiState
+    val state by viewModel.uiState.collectAsState()
+
+    ObserverAsEvent(flow = viewModel.uiEffect) { effect ->
+        when (effect) {
+            is UserManagementUiEffect.ShowSnackBar -> {}
+            is UserManagementUiEffect.ShowToast -> {}
+            UserManagementUiEffect.NavigateBack -> {}
+        }
+    }
+
     UserManagementScreenContent(
         state = state,
         onEvent = {

@@ -51,6 +51,7 @@ fun ReportsScreenContent(
     modifier: Modifier = Modifier,
 ){
     AppScaffold(
+        snackbarHostState = state.snackbarHostState,
         modifier = modifier,
         topBar = { AppScreenTopBar(title = "Reports") },
         contentList = {

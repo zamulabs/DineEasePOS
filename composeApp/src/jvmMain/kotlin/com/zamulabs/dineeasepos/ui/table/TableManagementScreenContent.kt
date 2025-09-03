@@ -52,6 +52,7 @@ fun TableManagementScreenContent(
     modifier: Modifier = Modifier,
 ){
     AppScaffold(
+        snackbarHostState = state.snackbarHostState,
         modifier = modifier,
         topBar = { AppScreenTopBar(title = "Tables") },
         contentHorizontalPadding = 24.dp,

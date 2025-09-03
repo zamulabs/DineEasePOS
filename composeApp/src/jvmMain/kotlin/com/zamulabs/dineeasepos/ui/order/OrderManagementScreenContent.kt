@@ -61,6 +61,7 @@ fun OrderManagementScreenContent(
     modifier: Modifier = Modifier,
 ) {
     AppScaffold(
+        snackbarHostState = state.snackbarHostState,
         modifier = modifier,
         topBar = { AppScreenTopBar(title = "Orders") },
         contentHorizontalPadding = 24.dp,

@@ -48,6 +48,7 @@ fun DashboardScreenContent(
     modifier: Modifier = Modifier,
 ) {
     AppScaffold(
+        snackbarHostState = state.snackbarHostState,
         modifier = modifier,
         topBar = { AppScreenTopBar(title = "Dashboard") },
         contentHorizontalPadding = 16.dp,

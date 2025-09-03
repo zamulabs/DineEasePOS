@@ -15,6 +15,7 @@
  */
 package com.zamulabs.dineeasepos.ui.order
 
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Immutable
 
 @Immutable
@@ -30,9 +31,13 @@ enum class OrderStatus { Open, Completed }
 
 @Immutable
 data class OrderManagementUiState(
-    val orders: List<Order> = emptyList(),
     val searchString: String = "",
     val selectedTab: OrderTab = OrderTab.All,
+
+    val isLoadingOrders: Boolean = false,
+    val errorLoadingOrders: String? = null,
+    val orders: List<Order> = emptyList(),
+    val snackbarHostState: SnackbarHostState = SnackbarHostState(),
 )
 
 enum class OrderTab { All, Open, Completed }
@@ -53,8 +58,12 @@ sealed interface OrderManagementUiEvent {
     ) : OrderManagementUiEvent
 }
 
-sealed interface OrderManagementUiEffect {
+sealed class OrderManagementUiEffect {
     data class ShowToast(
         val message: String,
-    ) : OrderManagementUiEffect
+    ) : OrderManagementUiEffect()
+
+    data class ShowSnackBar(val message: String) : OrderManagementUiEffect()
+
+    data object NavigateBack : OrderManagementUiEffect()
 }

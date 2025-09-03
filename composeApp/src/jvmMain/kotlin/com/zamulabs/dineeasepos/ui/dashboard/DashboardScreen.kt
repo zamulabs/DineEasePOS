@@ -21,6 +21,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 import com.zamulabs.dineeasepos.ui.navigation.Destinations
+import com.zamulabs.dineeasepos.utils.ObserverAsEvent
 import org.koin.compose.koinInject
 
 @Composable
@@ -30,6 +31,16 @@ fun DashboardScreen(
 ) {
     val viewModel: DashboardViewModel = koinInject()
     val uiState by viewModel.uiState.collectAsState()
+
+    ObserverAsEvent(flow = viewModel.uiEffect) { effect ->
+        when (effect) {
+            is DashboardUiEffect.ShowSnackBar -> {
+                // We could show a snackbar via state.snackbarHostState if desired
+            }
+            is DashboardUiEffect.ShowToast -> {}
+            DashboardUiEffect.NavigateBack -> navController.popBackStack()
+        }
+    }
 
     DashboardScreenContent(
         state = uiState,

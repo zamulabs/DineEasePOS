@@ -47,6 +47,7 @@ fun UserManagementScreenContent(
     modifier: Modifier = Modifier,
 ){
     AppScaffold(
+        snackbarHostState = state.snackbarHostState,
         modifier = modifier,
         topBar = { AppScreenTopBar(title = "Users") },
         contentHorizontalPadding = 24.dp,

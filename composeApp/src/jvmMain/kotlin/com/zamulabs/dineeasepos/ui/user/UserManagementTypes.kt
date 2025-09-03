@@ -15,6 +15,7 @@
  */
 package com.zamulabs.dineeasepos.ui.user
 
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Immutable
 
 @Immutable
@@ -27,6 +28,7 @@ data class User(
 @Immutable
 data class UserManagementUiState(
     val users: List<User> = emptyList(),
+    val snackbarHostState: SnackbarHostState = SnackbarHostState(),
 )
 
 sealed interface UserManagementUiEvent {
@@ -39,4 +41,10 @@ sealed interface UserManagementUiEvent {
     data class OnEdit(
         val index: Int,
     ) : UserManagementUiEvent
+}
+
+sealed class UserManagementUiEffect {
+    data class ShowToast(val message: String) : UserManagementUiEffect()
+    data class ShowSnackBar(val message: String) : UserManagementUiEffect()
+    data object NavigateBack : UserManagementUiEffect()
 }

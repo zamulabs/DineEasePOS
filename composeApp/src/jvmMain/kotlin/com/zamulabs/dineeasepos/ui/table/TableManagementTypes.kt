@@ -15,6 +15,7 @@
  */
 package com.zamulabs.dineeasepos.ui.table
 
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Immutable
 
 @Immutable
@@ -28,8 +29,12 @@ enum class TableStatus { Available, Occupied }
 
 @Immutable
 data class TableManagementUiState(
-    val tables: List<DiningTable> = sampleTables(),
     val searchString: String = "",
+
+    val isLoadingTables: Boolean = false,
+    val errorLoadingTables: String? = null,
+    val tables: List<DiningTable> = emptyList(),
+    val snackbarHostState: SnackbarHostState = SnackbarHostState(),
 )
 
 sealed interface TableManagementUiEvent {
@@ -42,6 +47,12 @@ sealed interface TableManagementUiEvent {
     data class OnClickViewDetails(
         val tableNumber: String,
     ) : TableManagementUiEvent
+}
+
+sealed class TableManagementUiEffect {
+    data class ShowToast(val message: String) : TableManagementUiEffect()
+    data class ShowSnackBar(val message: String) : TableManagementUiEffect()
+    data object NavigateBack : TableManagementUiEffect()
 }
 
 fun sampleTables(): List<DiningTable> =

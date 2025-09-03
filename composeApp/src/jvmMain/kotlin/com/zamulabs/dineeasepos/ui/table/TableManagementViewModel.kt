@@ -15,30 +15,71 @@
  */
 package com.zamulabs.dineeasepos.ui.table
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.zamulabs.dineeasepos.data.DineEaseRepository
+import com.zamulabs.dineeasepos.utils.NetworkResult
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
-class TableManagementViewModel : ViewModel() {
-    var uiState by mutableStateOf(TableManagementUiState())
-        private set
+class TableManagementViewModel(
+    private val repository: DineEaseRepository,
+) : ViewModel() {
+    private val _uiState = MutableStateFlow(TableManagementUiState())
+    val uiState = _uiState.asStateFlow()
+
+    private val _uiEffect = Channel<TableManagementUiEffect>()
+    val uiEffect = _uiEffect.receiveAsFlow()
+
+    fun updateUiState(block: TableManagementUiState.() -> TableManagementUiState) {
+        _uiState.update(block)
+    }
 
     fun onEvent(event: TableManagementUiEvent) {
         when (event) {
             is TableManagementUiEvent.OnClickAddTable -> {
-                // In a real app, navigate/open dialog. For now, append a sample new table.
-                val nextNumber = (uiState.tables.size + 1)
-                uiState =
-                    uiState.copy(
-                        tables = uiState.tables + DiningTable("Table $nextNumber", 4, TableStatus.Available),
-                    )
+                val nextNumber = (uiState.value.tables.size + 1)
+                updateUiState {
+                    copy(tables = tables + DiningTable("Table $nextNumber", 4, TableStatus.Available))
+                }
             }
+
             is TableManagementUiEvent.OnSearch -> {
-                uiState = uiState.copy(searchString = event.query)
+                updateUiState { copy(searchString = event.query) }
             }
 
             is TableManagementUiEvent.OnClickViewDetails -> {
+                // Navigation handled at Screen layer
+            }
+        }
+    }
+
+    fun loadTables() {
+        viewModelScope.launch {
+            updateUiState { copy(isLoadingTables = true) }
+            when (val result = repository.getTables()) {
+                is NetworkResult.Error -> {
+                    updateUiState {
+                        copy(
+                            isLoadingTables = false,
+                            errorLoadingTables = result.errorMessage,
+                            tables = sampleTables(),
+                        )
+                    }
+                }
+
+                is NetworkResult.Success -> {
+                    updateUiState {
+                        copy(
+                            isLoadingTables = false,
+                            tables = result.data ?: sampleTables(),
+                        )
+                    }
+                }
             }
         }
     }

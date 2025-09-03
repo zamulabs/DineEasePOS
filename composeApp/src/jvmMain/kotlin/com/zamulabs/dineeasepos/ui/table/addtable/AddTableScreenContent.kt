@@ -92,17 +92,13 @@ fun AddTableScreenContent(
             item {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                     AppOutlinedButton(onClick = {
-                        onCancel(); onEvent(
-                        AddTableUiEvent.OnCancel
-                    )
+                        onCancel()
                     }) {
                         Text("Cancel")
                     }
                     Spacer(Modifier.width(12.dp))
                     AppButton(onClick = {
-                        onEvent(
-                            AddTableUiEvent.OnSave
-                        ); onSave()
+                        onSave()
                     }, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF38E07B))) {
                         Text("Save", color = Color(0xFF122118))
                     }
