@@ -16,9 +16,15 @@
 package com.zamulabs.dineeasepos.ui.menu
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 import com.zamulabs.dineeasepos.ui.navigation.Destinations
+import com.zamulabs.dineeasepos.utils.ObserverAsEvent
+import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 
 @Composable
@@ -27,9 +33,36 @@ fun MenuManagementScreen(
     modifier: Modifier = Modifier,
     viewModel: MenuManagementViewModel = koinInject<MenuManagementViewModel>()
 ) {
-    val state = viewModel.uiState
+    val uiState by viewModel.uiState.collectAsState()
+    val scope = rememberCoroutineScope()
+
+    LaunchedEffect(viewModel) {
+        viewModel.getMenuItems()
+    }
+
+    ObserverAsEvent(viewModel.uiEffect) { effect ->
+        when (effect) {
+            is MenuManagementUiEffect.ShowSnackBar -> {
+                scope.launch {
+                    uiState.snackbarHostState.showSnackbar(
+                        message = effect.message,
+                    )
+                }
+            }
+
+            is MenuManagementUiEffect.ShowToast -> {
+                // TODO: find desktop lib to do this
+            }
+
+            MenuManagementUiEffect.NavigateBack -> {
+                navController.popBackStack()
+            }
+        }
+    }
+
+
     MenuManagementScreenContent(
-        state = state,
+        state = uiState,
         onEvent = { ev ->
             if (ev is MenuManagementUiEvent.OnClickAddItem) {
                 navController.navigate(Destinations.AddMenuItem)

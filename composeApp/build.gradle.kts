@@ -65,6 +65,15 @@ kotlin {
             implementation("com.seanproctor:data-table-material3:0.11.4")
 
             implementation("org.jetbrains.compose.components:components-splitpane-desktop:1.0.1")
+
+            // Ktor
+            implementation(libs.ktorCore)
+            implementation(libs.ktorSerialization)
+            implementation(libs.ktorLogging)
+            implementation(libs.contentNegotiation)
+            implementation(libs.ktorJson)
+            implementation(libs.ktorCio)
+            implementation(libs.ktorAuth)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

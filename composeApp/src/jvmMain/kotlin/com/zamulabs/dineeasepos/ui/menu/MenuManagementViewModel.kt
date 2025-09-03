@@ -15,39 +15,88 @@
  */
 package com.zamulabs.dineeasepos.ui.menu
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.zamulabs.dineeasepos.data.DineEaseRepository
+import com.zamulabs.dineeasepos.utils.NetworkResult
+import io.github.aakira.napier.Napier
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
-class MenuManagementViewModel : ViewModel() {
-    var uiState by mutableStateOf(sample())
-        private set
+class MenuManagementViewModel(
+    private val repository: DineEaseRepository,
+) : ViewModel() {
+    private val _uiState = MutableStateFlow(MenuManagementUiState())
+    val uiState = _uiState.asStateFlow()
+
+    private val _uiEffect = Channel<MenuManagementUiEffect>()
+    val uiEffect = _uiEffect.receiveAsFlow()
+
+    fun updateUiState(block: MenuManagementUiState.() -> MenuManagementUiState) {
+        _uiState.update(block)
+    }
 
     fun onEvent(event: MenuManagementUiEvent) {
         when (event) {
-            MenuManagementUiEvent.OnClickAddItem -> {}
-            is MenuManagementUiEvent.OnSearch -> uiState = uiState.copy(searchString = event.query)
-            is MenuManagementUiEvent.OnTabSelected -> uiState = uiState.copy(selectedTab = event.tab)
-            is MenuManagementUiEvent.OnToggleActive -> {
-                val list = uiState.items.toMutableList()
-                val item = list[event.index]
-                list[event.index] = item.copy(active = !item.active)
-                uiState = uiState.copy(items = list)
+            MenuManagementUiEvent.OnClickAddItem -> {
+                _uiEffect.trySend(MenuManagementUiEffect.ShowToast("Hello"))
             }
+
+            is MenuManagementUiEvent.OnSearch -> {}
+            is MenuManagementUiEvent.OnTabSelected -> {
+                updateUiState {
+                    copy(
+                        selectedTab = event.tab
+                    )
+                }
+            }
+
+            is MenuManagementUiEvent.OnToggleActive -> {}
+
             is MenuManagementUiEvent.OnEdit -> {}
         }
     }
 
-    private fun sample(): MenuManagementUiState {
-        val items =
-            listOf(
-                MenuItem("Spicy Chicken Sandwich", "Sandwiches", "$9.99", true),
-                MenuItem("Classic Cheeseburger", "Burgers", "$8.49", true),
-                MenuItem("Garden Salad", "Salads", "$7.99", true),
-                MenuItem("Fries", "Sides", "$3.49", true),
-                MenuItem("Chocolate Cake", "Desserts", "$5.99", false),
-            )
-        return MenuManagementUiState(items = items)
+    fun getMenuItems() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoadingMenuItems = true) }
+
+            when (val result = repository.getMenu()) {
+                is NetworkResult.Error -> {
+                    Napier.e("Error fetching menu")
+                    _uiState.update {
+                        it.copy(
+                            isLoadingMenuItems = false,
+                            errorLoadingMenuItems = result.errorMessage,
+                            items = sample(),
+                        )
+                    }
+                }
+
+                is NetworkResult.Success -> {
+                    Napier.e("success fetching menu")
+                    _uiState.update {
+                        it.copy(
+                            isLoadingMenuItems = false,
+                            items = result.data ?: sample(),
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    private fun sample(): List<MenuItem> {
+        return listOf(
+            MenuItem("Spicy Chicken Sandwich", "Sandwiches", "$9.99", true),
+            MenuItem("Classic Cheeseburger", "Burgers", "$8.49", true),
+            MenuItem("Garden Salad", "Salads", "$7.99", true),
+            MenuItem("Fries", "Sides", "$3.49", true),
+            MenuItem("Chocolate Cake", "Desserts", "$5.99", false),
+        )
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Zamulabs.
+ * Copyright 2025 Zamulabs.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,21 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.zamulabs.dineeasepos
+package com.zamulabs.dineeasepos.data
 
-import com.zamulabs.dineeasepos.di.viewModelModule
-import org.koin.core.Koin
-import org.koin.core.context.startKoin
-import org.koin.dsl.KoinAppDeclaration
+import com.zamulabs.dineeasepos.data.dto.MenuResponseDto
+import io.ktor.client.HttpClient
+import io.ktor.client.call.body
+import io.ktor.client.request.get
+import io.ktor.client.request.parameter
 
-class KoinInit {
-    fun init(appDeclaration: KoinAppDeclaration = {}): Koin =
-        startKoin {
-            modules(
-                listOf(
-                    viewModelModule,
-                ),
-            )
-            appDeclaration()
-        }.koin
+class ApiService(
+    private val httpClient: HttpClient,
+) {
+    suspend fun fetchMenu(): List<MenuResponseDto> {
+        return httpClient.get(urlString = "api/menu") {
+            parameter("all", 1)
+        }.body()
+    }
+
+    companion object {
+        const val BASE_URL = ""
+    }
 }

@@ -29,6 +29,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -81,6 +83,7 @@ fun AppScreenTopBar(
 @Composable
 fun AppScaffold(
     modifier: Modifier = Modifier,
+    snackbarHostState: SnackbarHostState = SnackbarHostState(),
     topBar: @Composable (() -> Unit)? = null,
     bottomBar: @Composable (() -> Unit)? = null,
     floatingActionButton: @Composable (() -> Unit)? = null,
@@ -92,6 +95,9 @@ fun AppScaffold(
 ) {
     Scaffold(
         modifier = modifier.fillMaxSize(),
+        snackbarHost = {
+            SnackbarHost(snackbarHostState)
+        },
         topBar = { topBar?.invoke() },
         bottomBar = { bottomBar?.invoke() },
         floatingActionButton = { floatingActionButton?.invoke() },
@@ -99,7 +105,8 @@ fun AppScaffold(
     ) { innerPadding ->
         if (contentList != null) {
             LazyColumn(
-                modifier = Modifier.fillMaxSize().padding(innerPadding).padding(horizontal = contentHorizontalPadding),
+                modifier = Modifier.fillMaxSize().padding(innerPadding)
+                    .padding(horizontal = contentHorizontalPadding),
                 verticalArrangement = Arrangement.spacedBy(contentVerticalSpacing),
             ) {
                 // Provide a small initial spacer similar to existing screens

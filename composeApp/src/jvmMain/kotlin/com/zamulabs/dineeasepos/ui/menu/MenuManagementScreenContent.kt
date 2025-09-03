@@ -26,6 +26,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.SecondaryScrollableTabRow
+import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -54,23 +55,31 @@ fun MenuManagementScreenContent(
     state: MenuManagementUiState,
     onEvent: (MenuManagementUiEvent) -> Unit,
     modifier: Modifier = Modifier,
-){
+) {
     AppScaffold(
+        snackbarHostState = state.snackbarHostState,
         modifier = modifier,
         topBar = { AppScreenTopBar(title = "Menu Management") },
         contentHorizontalPadding = 24.dp,
         contentList = {
             item {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically){
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     // Title moved to TopAppBar; keep only actions here
-                    AppButton(onClick = { onEvent(MenuManagementUiEvent.OnClickAddItem) }, colors = ButtonDefaults.buttonColors(containerColor = PrimaryLightColor)){
+                    AppButton(
+                        onClick = { onEvent(MenuManagementUiEvent.OnClickAddItem) },
+                        colors = ButtonDefaults.buttonColors(containerColor = PrimaryLightColor)
+                    ) {
                         Text("Add Item")
                     }
                 }
             }
             item { Spacer(Modifier.height(16.dp)) }
             item {
-                var query by remember(state.searchString){ mutableStateOf(state.searchString) }
+                var query by remember(state.searchString) { mutableStateOf(state.searchString) }
                 AppTextField(
                     value = query,
                     onValueChange = { query = it; onEvent(MenuManagementUiEvent.OnSearch(it)) },
@@ -83,9 +92,17 @@ fun MenuManagementScreenContent(
             item {
                 val tabs = listOf(MenuTab.All, MenuTab.Active, MenuTab.Inactive)
                 val selectedIndex = tabs.indexOf(state.selectedTab).coerceAtLeast(0)
-                SecondaryScrollableTabRow(selectedTabIndex = selectedIndex, containerColor = Color.Transparent, divider = {}, edgePadding = 0.dp){
+                SecondaryScrollableTabRow(
+                    selectedTabIndex = selectedIndex,
+                    containerColor = Color.Transparent,
+                    divider = {},
+                    edgePadding = 0.dp
+                ) {
                     tabs.forEachIndexed { index, tab ->
-                        Tab(selected = index==selectedIndex, onClick = { onEvent(MenuManagementUiEvent.OnTabSelected(tab)) }, text = { Text(tab.name.replaceFirstChar { it.uppercase() }) })
+                        Tab(
+                            selected = index == selectedIndex,
+                            onClick = { onEvent(MenuManagementUiEvent.OnTabSelected(tab)) },
+                            text = { Text(tab.name.replaceFirstChar { it.uppercase() }) })
                     }
                 }
             }
@@ -100,12 +117,13 @@ fun MenuManagementScreenContent(
                         DataColumn { Text("Actions") },
                     ),
                     paginated = false,
-                ){
+                ) {
                     val filtered = state.items.filter { item ->
                         val q = state.searchString.trim().lowercase()
-                        q.isEmpty() || item.name.lowercase().contains(q) || item.category.lowercase().contains(q)
+                        q.isEmpty() || item.name.lowercase()
+                            .contains(q) || item.category.lowercase().contains(q)
                     }.filter { item ->
-                        when(state.selectedTab){
+                        when (state.selectedTab) {
                             MenuTab.All -> true
                             MenuTab.Active -> item.active
                             MenuTab.Inactive -> !item.active
@@ -119,14 +137,25 @@ fun MenuManagementScreenContent(
                             cell {
                                 val bg = Color(0xFF264532)
                                 val active = item.active
-                                val pillColor = if(active) PrimaryLightColor else Color(0xFF264532)
-                                val textColor = if(active) Color.White else Color.White
-                                Row(modifier = Modifier.clip(RoundedCornerShape(24.dp)).background(bg).padding(horizontal = 16.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically){
-                                    Text(if(active) "Active" else "Inactive")
+                                val pillColor = if (active) PrimaryLightColor else Color(0xFF264532)
+                                val textColor = if (active) Color.White else Color.White
+                                Row(
+                                    modifier = Modifier.clip(RoundedCornerShape(24.dp))
+                                        .background(bg)
+                                        .padding(horizontal = 16.dp, vertical = 6.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(if (active) "Active" else "Inactive")
                                 }
                             }
                             cell {
-                                TextButton(onClick = { onEvent(MenuManagementUiEvent.OnEdit(index)) }){ Text("Edit", color = Color(0xFFA6C7B5), fontWeight = FontWeight.Bold) }
+                                TextButton(onClick = { onEvent(MenuManagementUiEvent.OnEdit(index)) }) {
+                                    Text(
+                                        "Edit",
+                                        color = Color(0xFFA6C7B5),
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
                             }
                         }
                     }

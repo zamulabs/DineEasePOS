@@ -15,7 +15,9 @@
  */
 package com.zamulabs.dineeasepos.ui.menu
 
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.remember
 
 @Immutable
 data class MenuItem(
@@ -27,9 +29,13 @@ data class MenuItem(
 
 @Immutable
 data class MenuManagementUiState(
-    val items: List<MenuItem> = emptyList(),
     val searchString: String = "",
     val selectedTab: MenuTab = MenuTab.All,
+
+    val isLoadingMenuItems: Boolean = false,
+    val errorLoadingMenuItems: String? = null,
+    val items: List<MenuItem> = emptyList(),
+    val snackbarHostState : SnackbarHostState = SnackbarHostState(),
 )
 
 enum class MenuTab { All, Active, Inactive }
@@ -52,4 +58,14 @@ sealed interface MenuManagementUiEvent {
     data class OnEdit(
         val index: Int,
     ) : MenuManagementUiEvent
+}
+
+sealed class MenuManagementUiEffect {
+    data class ShowToast(
+        val message: String,
+    ) : MenuManagementUiEffect()
+
+    data class ShowSnackBar(val message: String) : MenuManagementUiEffect()
+
+    data object NavigateBack : MenuManagementUiEffect()
 }

@@ -15,6 +15,11 @@
  */
 package com.zamulabs.dineeasepos.di
 
+import com.zamulabs.dineeasepos.data.ApiService
+import com.zamulabs.dineeasepos.data.DineEaseRepository
+import com.zamulabs.dineeasepos.data.DineEaseRepositoryImpl
+import com.zamulabs.dineeasepos.data.SettingsRepositoryImpl
+import com.zamulabs.dineeasepos.data.SettingsRepository
 import com.zamulabs.dineeasepos.ui.dashboard.DashboardViewModel
 import com.zamulabs.dineeasepos.ui.login.LoginViewModel
 import com.zamulabs.dineeasepos.ui.menu.MenuManagementViewModel
@@ -30,6 +35,7 @@ import com.zamulabs.dineeasepos.ui.table.addtable.AddTableViewModel
 import com.zamulabs.dineeasepos.ui.table.details.TableDetailsViewModel
 import com.zamulabs.dineeasepos.ui.user.UserManagementViewModel
 import com.zamulabs.dineeasepos.ui.user.adduser.AddUserViewModel
+import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
@@ -50,4 +56,12 @@ val viewModelModule =
         singleOf(::AddUserViewModel)
         singleOf(::ReceiptViewModel)
         singleOf(::LoginViewModel)
+
+        /**
+         * API Service
+         */
+        factoryOf(::ApiService)
+
+        single<SettingsRepository> { SettingsRepositoryImpl(preferenceManager = get()) }
+        single<DineEaseRepository> { DineEaseRepositoryImpl(apiService = get()) }
     }
