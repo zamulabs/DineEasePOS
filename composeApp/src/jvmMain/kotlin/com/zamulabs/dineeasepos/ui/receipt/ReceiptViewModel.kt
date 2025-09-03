@@ -13,14 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.zamulabs.dineeasepos
+package com.zamulabs.dineeasepos.ui.receipt
 
-import kotlin.test.Test
-import kotlin.test.assertEquals
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.lifecycle.ViewModel
 
-class ComposeAppDesktopTest {
-    @Test
-    fun example() {
-        assertEquals(3, 1 + 2)
+class ReceiptViewModel : ViewModel() {
+    var uiState by mutableStateOf(ReceiptUiState())
+        private set
+
+    fun onEvent(event: ReceiptUiEvent) {
+        when (event) {
+            ReceiptUiEvent.OnEmail -> { /* TODO: implement */ }
+            ReceiptUiEvent.OnPrint -> { /* TODO: implement */ }
+            ReceiptUiEvent.OnSavePdf -> { /* TODO: implement */ }
+        }
     }
 }

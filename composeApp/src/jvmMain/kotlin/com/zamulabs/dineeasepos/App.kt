@@ -1,3 +1,18 @@
+/*
+ * Copyright 2025 Zamulabs.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.zamulabs.dineeasepos
 
 import androidx.compose.foundation.layout.Row
@@ -8,19 +23,21 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.zamulabs.dineeasepos.components.AppNavigationRailBar
-import com.zamulabs.dineeasepos.navigation.AppNavHost
-import com.zamulabs.dineeasepos.navigation.Destinations
-import com.zamulabs.dineeasepos.navigation.NavRail
-import com.zamulabs.dineeasepos.theme.DineEaseTheme
+import com.zamulabs.dineeasepos.ui.components.AppNavigationRailBar
+import com.zamulabs.dineeasepos.ui.navigation.AppNavHost
+import com.zamulabs.dineeasepos.ui.navigation.Destinations
+import com.zamulabs.dineeasepos.ui.navigation.NavRail
+import com.zamulabs.dineeasepos.ui.theme.DineEaseTheme
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
 @Preview
-fun App() {
+fun App(
+    modifier: Modifier = Modifier
+) {
     DineEaseTheme {
         Surface(
-            modifier = Modifier.fillMaxSize()
+            modifier = modifier.fillMaxSize()
         ) {
             val navController = rememberNavController()
             val navBackStackEntry by navController.currentBackStackEntryAsState()

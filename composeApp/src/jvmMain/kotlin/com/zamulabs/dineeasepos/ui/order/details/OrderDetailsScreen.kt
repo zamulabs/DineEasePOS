@@ -13,14 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.zamulabs.dineeasepos
+package com.zamulabs.dineeasepos.ui.order.details
 
-import kotlin.test.Test
-import kotlin.test.assertEquals
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.navigation.NavController
+import org.koin.compose.koinInject
 
-class ComposeAppDesktopTest {
-    @Test
-    fun example() {
-        assertEquals(3, 1 + 2)
-    }
+@Composable
+fun OrderDetailsScreen(
+    navController: NavController,
+    viewModel: OrderDetailsViewModel = koinInject(),
+){
+    val state by viewModel.uiState.collectAsState()
+    OrderDetailsScreenContent(state = state, onEvent = viewModel::onEvent, onBack = { navController.popBackStack() })
 }

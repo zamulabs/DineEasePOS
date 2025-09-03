@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Zamulabs.
+ * Copyright 2025 Zamulabs.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,21 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.zamulabs.dineeasepos
+package com.zamulabs.dineeasepos.ui.table.addtable
 
-import com.zamulabs.dineeasepos.di.viewModelModule
-import org.koin.core.Koin
-import org.koin.core.context.startKoin
-import org.koin.dsl.KoinAppDeclaration
+import androidx.compose.runtime.Composable
+import androidx.navigation.NavController
+import org.koin.compose.koinInject
 
-class KoinInit {
-    fun init(appDeclaration: KoinAppDeclaration = {}): Koin =
-        startKoin {
-            modules(
-                listOf(
-                    viewModelModule,
-                ),
-            )
-            appDeclaration()
-        }.koin
+@Composable
+fun AddTableScreen(
+    navController: NavController,
+    vm: AddTableViewModel = koinInject<AddTableViewModel>()
+){
+    val state = vm.uiState
+    AddTableScreenContent(
+        state = state,
+        onEvent = vm::onEvent,
+        onSave = { navController.popBackStack() },
+        onCancel = { navController.popBackStack() }
+    )
 }

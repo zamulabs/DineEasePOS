@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Zamulabs.
+ * Copyright 2025 Zamulabs.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,21 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.zamulabs.dineeasepos
+package com.zamulabs.dineeasepos.ui.theme
 
-import com.zamulabs.dineeasepos.di.viewModelModule
-import org.koin.core.Koin
-import org.koin.core.context.startKoin
-import org.koin.dsl.KoinAppDeclaration
+import androidx.compose.ui.graphics.Color
 
-class KoinInit {
-    fun init(appDeclaration: KoinAppDeclaration = {}): Koin =
-        startKoin {
-            modules(
-                listOf(
-                    viewModelModule,
-                ),
-            )
-            appDeclaration()
-        }.koin
-}
+val PrimaryColor = Color(0xFF366347)
+val PrimaryLightColor = Color(0xFF96C4A8)
+
+val SecondaryColor = Color(0xFF264533)
+val SecondaryLightColor = Color(0xFF1C3024)
+
+val PrimaryTextColor = Color(0xFFFFFFFF)
+val SecondaryTextColor = Color(0xFFE5E8EB)
+
+val SurfaceDark = Color(0xFF122117)
+val BackgroundDarkColor = Color(0xFF0E1A13)
+
+val ErrorColor = Color(0xFFFF6B6B)
+val OnErrorColor = Color(0xFFFFFFFF)
+
+val SuccessColor = Color(0xFF34B233)

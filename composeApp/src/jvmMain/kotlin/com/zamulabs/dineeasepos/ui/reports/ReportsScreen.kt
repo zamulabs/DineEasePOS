@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Zamulabs.
+ * Copyright 2025 Zamulabs.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,21 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.zamulabs.dineeasepos
+package com.zamulabs.dineeasepos.ui.reports
 
-import com.zamulabs.dineeasepos.di.viewModelModule
-import org.koin.core.Koin
-import org.koin.core.context.startKoin
-import org.koin.dsl.KoinAppDeclaration
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 
-class KoinInit {
-    fun init(appDeclaration: KoinAppDeclaration = {}): Koin =
-        startKoin {
-            modules(
-                listOf(
-                    viewModelModule,
-                ),
-            )
-            appDeclaration()
-        }.koin
+@Composable
+fun ReportsScreen(
+){
+    val vm = ReportsViewModel()
+    val state by vm.uiState.collectAsState()
+    ReportsScreenContent(state = state, onEvent = vm::onEvent)
 }

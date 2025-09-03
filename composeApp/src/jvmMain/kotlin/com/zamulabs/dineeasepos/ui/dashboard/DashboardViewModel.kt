@@ -13,14 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.zamulabs.dineeasepos
+package com.zamulabs.dineeasepos.ui.dashboard
 
-import kotlin.test.Test
-import kotlin.test.assertEquals
+import androidx.lifecycle.ViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
-class ComposeAppDesktopTest {
-    @Test
-    fun example() {
-        assertEquals(3, 1 + 2)
+class DashboardViewModel : ViewModel() {
+    private val _uiState = MutableStateFlow(DashboardUiState())
+    val uiState: StateFlow<DashboardUiState> = _uiState.asStateFlow()
+
+    fun onEvent(event: DashboardUiEvent) {
+        when (event) {
+            DashboardUiEvent.Refresh -> refresh()
+        }
+    }
+
+    fun refresh() {
+        _uiState.value = _uiState.value.copy()
     }
 }

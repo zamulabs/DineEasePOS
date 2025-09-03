@@ -13,14 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.zamulabs.dineeasepos
+package com.zamulabs.dineeasepos.ui.login
 
-import kotlin.test.Test
-import kotlin.test.assertEquals
+import androidx.compose.runtime.Immutable
 
-class ComposeAppDesktopTest {
-    @Test
-    fun example() {
-        assertEquals(3, 1 + 2)
-    }
+@Immutable
+data class LoginUiState(
+    val email: String = "",
+    val password: String = "",
+    val loading: Boolean = false,
+    val error: String? = null,
+)
+
+sealed interface LoginUiEvent {
+    data class OnEmailChanged(
+        val value: String,
+    ) : LoginUiEvent
+
+    data class OnPasswordChanged(
+        val value: String,
+    ) : LoginUiEvent
+
+    data object OnSubmit : LoginUiEvent
+
+    data object OnForgotPassword : LoginUiEvent
+
+    data object OnSignup : LoginUiEvent
 }
