@@ -39,26 +39,46 @@ class ReceiptViewModel(
 
     fun onEvent(event: ReceiptUiEvent) {
         when (event) {
-            ReceiptUiEvent.OnEmail -> { /* no-op for now */ }
-            ReceiptUiEvent.OnPrint -> { /* no-op for now */ }
-            ReceiptUiEvent.OnSavePdf -> { /* no-op for now */ }
+            is ReceiptUiEvent.OnSearchChanged -> updateUiState { copy(search = event.value) }
+            ReceiptUiEvent.OnExport -> { /* TODO: export receipts */ }
         }
     }
 
-    fun loadReceipt(orderId: String?) {
-        if (orderId.isNullOrBlank()) return // keep default demo state
+    fun loadReceipts() {
         viewModelScope.launch {
-            when (val result = repository.getReceipt(orderId)) {
+            updateUiState { copy(isLoading = true) }
+            when (val result = repository.getPayments()) {
                 is com.zamulabs.dineeasepos.utils.NetworkResult.Error -> {
-                    // Stick to current demo state on error
+                    updateUiState {
+                        copy(
+                            isLoading = false,
+                            error = result.errorMessage,
+                            items = sampleReceipts(),
+                        )
+                    }
                 }
                 is com.zamulabs.dineeasepos.utils.NetworkResult.Success -> {
-                    result.data?.let { data -> _uiState.update { data } }
+                    val payments = result.data.orEmpty()
+                    val mapped = payments.map { p ->
+                        ReceiptListItem(
+                            receiptNo = "R-${'$'}{p.orderId}",
+                            orderId = p.orderId,
+                            date = p.date,
+                            method = p.method,
+                            amount = p.amount,
+                        )
+                    }
+                    updateUiState { copy(isLoading = false, items = if (mapped.isEmpty()) sampleReceipts() else mapped) }
                 }
             }
         }
     }
 }
+
+private fun sampleReceipts(): List<ReceiptListItem> = listOf(
+    ReceiptListItem("R-ORD-20240720-001", "ORD-20240720-001", "Jul 20, 2024", "Credit Card", "$55.75"),
+    ReceiptListItem("R-ORD-20240719-002", "ORD-20240719-002", "Jul 19, 2024", "Cash", "$22.50"),
+)
 
 sealed class ReceiptUiEffect {
     data class ShowSnackBar(val message: String) : ReceiptUiEffect()

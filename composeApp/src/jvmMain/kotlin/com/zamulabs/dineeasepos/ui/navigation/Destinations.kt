@@ -69,5 +69,5 @@ sealed class Destinations {
     object Reports
 
     @Serializable
-    data class Receipt(val orderId: String)
+    object Receipt
 }

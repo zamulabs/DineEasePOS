@@ -15,8 +15,6 @@
  */
 package com.zamulabs.dineeasepos.data.dto
 
-import com.zamulabs.dineeasepos.ui.receipt.ReceiptItem
-import com.zamulabs.dineeasepos.ui.receipt.ReceiptUiState
 
 /**
  * DTOs for Receipt feature and mappers to domain models, following Menu/Reports style.
@@ -45,25 +43,5 @@ data class ReceiptDto(
 )
 
 object ReceiptMappers {
-    fun ReceiptItemDto.toDomain(): ReceiptItem = ReceiptItem(
-        item = item,
-        quantity = quantity,
-        price = price,
-        total = total,
-    )
-
-    fun ReceiptDto.toUiState(): ReceiptUiState = ReceiptUiState(
-        orderId = orderId,
-        restaurantName = restaurantName,
-        address = address,
-        phone = phone,
-        orderDate = orderDate,
-        orderTime = orderTime,
-        orderType = orderType,
-        items = items.map { it.toDomain() },
-        subtotal = subtotal,
-        tax = tax,
-        total = total,
-        paymentMethod = paymentMethod,
-    )
+    // Mapping to UI models removed because Receipt screen now lists receipts from payments.
 }

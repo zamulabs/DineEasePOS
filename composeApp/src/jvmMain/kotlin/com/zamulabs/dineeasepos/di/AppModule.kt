@@ -20,6 +20,7 @@ import com.zamulabs.dineeasepos.data.DineEaseRepository
 import com.zamulabs.dineeasepos.data.DineEaseRepositoryImpl
 import com.zamulabs.dineeasepos.data.SettingsRepositoryImpl
 import com.zamulabs.dineeasepos.data.SettingsRepository
+import com.zamulabs.dineeasepos.data.FakeApiService
 import com.zamulabs.dineeasepos.ui.dashboard.DashboardViewModel
 import com.zamulabs.dineeasepos.ui.login.LoginViewModel
 import com.zamulabs.dineeasepos.ui.menu.MenuManagementViewModel
@@ -62,9 +63,9 @@ val viewModelModule =
         singleOf(::LoginViewModel)
 
         /**
-         * API Service
+         * API Service (mocked)
          */
-        factoryOf(::ApiService)
+        single<ApiService> { FakeApiService(httpClient = get()) }
 
         single<SettingsRepository> { SettingsRepositoryImpl(preferenceManager = get()) }
         single<DineEaseRepository> { DineEaseRepositoryImpl(apiService = get()) }

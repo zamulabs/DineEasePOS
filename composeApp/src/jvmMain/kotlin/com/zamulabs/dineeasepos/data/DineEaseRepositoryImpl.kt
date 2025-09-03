@@ -139,8 +139,13 @@ class DineEaseRepositoryImpl(
     override suspend fun getReceipt(orderId: String): NetworkResult<com.zamulabs.dineeasepos.ui.receipt.ReceiptUiState> {
         return safeApiCall {
             Napier.e("Fetching receipt for order $orderId")
+            // Legacy single receipt flow is no longer used by UI; return a placeholder state or map via payments if needed.
+            // Keeping API call for compatibility, but return a basic placeholder to satisfy interface.
             val dto = apiService.fetchReceipt(orderId)
-            com.zamulabs.dineeasepos.data.dto.ReceiptMappers.run { dto.toUiState() }
+            // Convert to a simple placeholder UI state compatible with list-based screen expectations
+            com.zamulabs.dineeasepos.ui.receipt.ReceiptUiState(
+                items = emptyList(),
+            )
         }
     }
 

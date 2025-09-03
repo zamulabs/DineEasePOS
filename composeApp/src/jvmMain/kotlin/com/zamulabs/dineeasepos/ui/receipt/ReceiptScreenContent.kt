@@ -42,90 +42,46 @@ fun ReceiptScreenContent(
     onBack: () -> Unit,
 ) {
     AppScaffold(
-        topBar = {
-            BackBreadcrumb(
-                parentLabel = "Orders",
-                currentLabel = "Receipt",
-                onBack = onBack,
-            )
-        },
+        topBar = { com.zamulabs.dineeasepos.ui.components.ui.AppScreenTopBar(title = "Receipts") },
         contentList = {
-            item { Text("Order ${state.orderId}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.outline) }
-            item { SectionTitle("Restaurant Information") }
-            item { KeyValueRow("Restaurant Name", state.restaurantName) }
-            item { KeyValueRow("Address", state.address) }
-            item { KeyValueRow("Phone", state.phone) }
-
-            item { SectionTitle("Order Information") }
-            item { KeyValueRow("Order Date", state.orderDate) }
-            item { KeyValueRow("Order Time", state.orderTime) }
-            item { KeyValueRow("Order Type", state.orderType) }
-
-            item { SectionTitle("Items") }
             item {
+                com.zamulabs.dineeasepos.ui.components.ui.AppTextField(
+                    value = state.search,
+                    onValueChange = { onEvent(ReceiptUiEvent.OnSearchChanged(it)) },
+                    label = { Text("Search receipts") },
+                    placeholder = { Text("Search by order id or receipt number") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+
+            item {
+                val filtered = state.items.filter { item ->
+                    val q = state.search.trim().lowercase()
+                    if (q.isEmpty()) true else (
+                        item.orderId.lowercase().contains(q) || item.receiptNo.lowercase().contains(q)
+                    )
+                }
                 AppDataTable(
                     columns = listOf(
-                        com.seanproctor.datatable.DataColumn { Text("Item") },
-                        com.seanproctor.datatable.DataColumn { Text("Quantity") },
-                        com.seanproctor.datatable.DataColumn { Text("Price") },
-                        com.seanproctor.datatable.DataColumn { Text("Total") },
+                        com.seanproctor.datatable.DataColumn { Text("Receipt No") },
+                        com.seanproctor.datatable.DataColumn { Text("Order ID") },
+                        com.seanproctor.datatable.DataColumn { Text("Date") },
+                        com.seanproctor.datatable.DataColumn { Text("Method") },
+                        com.seanproctor.datatable.DataColumn { Text("Amount") },
                     ),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    state.items.forEach { item ->
+                    filtered.forEach { r ->
                         row {
-                            cell { Text(item.item) }
-                            cell { Text(item.quantity.toString(), color = MaterialTheme.colorScheme.outline) }
-                            cell { Text(item.price, color = MaterialTheme.colorScheme.outline) }
-                            cell { Text(item.total, color = MaterialTheme.colorScheme.outline) }
+                            cell { Text(r.receiptNo) }
+                            cell { Text(r.orderId, color = MaterialTheme.colorScheme.outline) }
+                            cell { Text(r.date, color = MaterialTheme.colorScheme.outline) }
+                            cell { Text(r.method, color = MaterialTheme.colorScheme.outline) }
+                            cell { Text(r.amount, color = MaterialTheme.colorScheme.outline) }
                         }
                     }
                 }
             }
-
-            item { SectionTitle("Summary") }
-            item { KeyValueRow("Subtotal", state.subtotal) }
-            item { KeyValueRow("Tax", state.tax) }
-            item { KeyValueRow("Total", state.total) }
-
-            item { SectionTitle("Payment") }
-            item { KeyValueRow("Payment Method", state.paymentMethod) }
-
-            item { SectionTitle("Footer") }
-            item {
-                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center){
-                    Text("Thank you for dining with us! We hope to see you again soon.")
-                }
-            }
-
-            item {
-                Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()){
-                    AppButton(onClick = { onEvent(ReceiptUiEvent.OnPrint) }){
-                        Text("Print")
-                    }
-                    Spacer(Modifier.width(12.dp))
-                    FilledTonalButton(onClick = { onEvent(ReceiptUiEvent.OnSavePdf) }){ Text("Save as PDF") }
-                }
-            }
-            item {
-                Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()){
-                    FilledTonalButton(onClick = { onEvent(ReceiptUiEvent.OnEmail) }){ Text("Email") }
-                }
-            }
         }
     )
-}
-
-@Composable
-private fun SectionTitle(title: String){
-    Spacer(Modifier.height(12.dp))
-    Text(title, style = MaterialTheme.typography.titleLarge)
-}
-
-@Composable
-private fun KeyValueRow(key: String, value: String){
-    Row(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)){
-        Text(key, modifier = Modifier.width(160.dp), color = MaterialTheme.colorScheme.outline)
-        Text(value)
-    }
 }

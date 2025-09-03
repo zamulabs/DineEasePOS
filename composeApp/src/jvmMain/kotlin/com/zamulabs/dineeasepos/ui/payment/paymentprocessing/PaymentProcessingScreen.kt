@@ -41,7 +41,7 @@ fun PaymentProcessingScreen(
                 scope.launch { state.snackbarHostState.showSnackbar(effect.message) }
             }
             is PaymentProcessingUiEffect.NavigateToReceipt -> {
-                navController.navigate(Destinations.Receipt(orderId = effect.orderId))
+                navController.navigate(Destinations.Receipt)
             }
             PaymentProcessingUiEffect.NavigateBack -> {
                 navController.popBackStack()

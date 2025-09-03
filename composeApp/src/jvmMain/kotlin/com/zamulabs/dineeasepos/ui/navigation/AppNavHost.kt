@@ -118,7 +118,7 @@ fun AppNavHost(
         }
 
         composable<Destinations.AddUser> {
-            AddUserScreen()
+            AddUserScreen(navController = navController)
         }
 
         composable<Destinations.Reports> {
@@ -126,8 +126,7 @@ fun AppNavHost(
         }
 
         composable<Destinations.Receipt> {
-            val args = it.toRoute<Destinations.Receipt>()
-            ReceiptScreen(navController = navController, orderId = args.orderId)
+            ReceiptScreen(navController = navController)
         }
     }
 }

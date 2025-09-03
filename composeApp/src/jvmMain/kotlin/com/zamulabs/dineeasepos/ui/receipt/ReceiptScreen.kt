@@ -23,13 +23,12 @@ import androidx.navigation.NavController
 @Composable
 fun ReceiptScreen(
     navController: NavController,
-    orderId: String,
     modifier: Modifier = Modifier,
 ) {
     val vm: ReceiptViewModel = org.koin.compose.koinInject()
     val state = vm.uiState.collectAsState().value
-    androidx.compose.runtime.LaunchedEffect(orderId) {
-        vm.loadReceipt(orderId)
+    androidx.compose.runtime.LaunchedEffect(Unit) {
+        vm.loadReceipts()
     }
     ReceiptScreenContent(
         state = state,

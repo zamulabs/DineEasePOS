@@ -23,6 +23,7 @@ import org.koin.compose.koinInject
 
 @Composable
 fun AddUserScreen(
+    navController: androidx.navigation.NavController,
     modifier: Modifier = Modifier,
     vm: AddUserViewModel = koinInject<AddUserViewModel>()
 ){
@@ -32,7 +33,7 @@ fun AddUserScreen(
         when (effect) {
             is AddUserUiEffect.ShowSnackBar -> { /* hook up snackbar if needed */ }
             is AddUserUiEffect.ShowToast -> { /* TODO desktop toast */ }
-            AddUserUiEffect.NavigateBack -> { /* Navigation handled at caller via popBackStack if provided */ }
+            AddUserUiEffect.NavigateBack -> { navController.popBackStack() }
         }
     }
 
