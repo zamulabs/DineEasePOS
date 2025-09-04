@@ -35,7 +35,7 @@ data class ReceiptListItem(
      val detail: ReceiptDetail? = null,
      val snackbarHostState: androidx.compose.material3.SnackbarHostState = androidx.compose.material3.SnackbarHostState(),
  )
- 
+
  @Immutable
  data class ReceiptDetail(
      val orderId: String,
@@ -51,7 +51,7 @@ data class ReceiptListItem(
      val total: String,
      val paymentMethod: String,
  )
- 
+
  @Immutable
  data class ReceiptDetailItem(
      val item: String,
@@ -59,7 +59,7 @@ data class ReceiptListItem(
      val price: String,
      val total: String,
  )
- 
+
  sealed interface ReceiptUiEvent {
      data class OnSearchChanged(val value: String) : ReceiptUiEvent
      data object OnExport : ReceiptUiEvent

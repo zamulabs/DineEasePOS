@@ -74,9 +74,11 @@ kotlin {
             implementation(libs.ktorCio)
             implementation(libs.ktorAuth)
         }
+
         commonTest.dependencies {
             implementation(libs.kotlin.test)
         }
+
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutinesSwing)
@@ -101,6 +103,16 @@ kotlin {
     }
 }
 
+sqldelight {
+    databases {
+        create("DineEaseDatabase") {
+            packageName.set("com.zamulabs.dineeasepos.database")
+        }
+    }
+}
+
+group = "com.zamulabs"
+version = properties["version"] as String
 
 compose.desktop {
     application {
@@ -108,16 +120,26 @@ compose.desktop {
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "com.zamulabs.dineeasepos"
-            packageVersion = "1.0.0"
-        }
-    }
-}
+            packageName = "DineEasePOS"
+            packageVersion = project.version as String
 
-sqldelight {
-    databases {
-        create("DineEaseDatabase") {
-            packageName.set("com.zamulabs.dineeasepos.database")
+            // Platform-specific output dirs
+            macOS {
+                outputBaseDir.set(buildDir.resolve("mac/installation"))
+                iconFile.set(file("src/jvmMain/composeResources/drawable/launcher_icons/macos.icns"))
+            }
+
+            windows {
+                outputBaseDir.set(buildDir.resolve("win/installation"))
+                iconFile.set(file("src/jvmMain/composeResources/drawable/launcher_icons/windowsos.ico"))
+            }
+
+            linux {
+                outputBaseDir.set(buildDir.resolve("linux/installation"))
+                iconFile.set(file("src/jvmMain/composeResources/drawable/launcher_icons/linuxos.png"))
+            }
+
+            modules("java.instrument", "java.management", "java.prefs", "java.sql", "jdk.unsupported")
         }
     }
 }

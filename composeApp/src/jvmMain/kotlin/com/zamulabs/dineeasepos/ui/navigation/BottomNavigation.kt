@@ -15,16 +15,16 @@
  */
 package com.zamulabs.dineeasepos.ui.navigation
 
-import dineeasepos.composeapp.generated.resources.Res
-import dineeasepos.composeapp.generated.resources.add_filled
-import dineeasepos.composeapp.generated.resources.calendar_filled
-import dineeasepos.composeapp.generated.resources.calendar_outlined
-import dineeasepos.composeapp.generated.resources.home_filled
-import dineeasepos.composeapp.generated.resources.home_outlined
-import dineeasepos.composeapp.generated.resources.settings_filled
-import dineeasepos.composeapp.generated.resources.settings_outlined
-import dineeasepos.composeapp.generated.resources.statistics_filled
-import dineeasepos.composeapp.generated.resources.statistics_outlined
+import com.zamulabs.composeapp.generated.resources.Res
+import com.zamulabs.composeapp.generated.resources.add_filled
+import com.zamulabs.composeapp.generated.resources.calendar_filled
+import com.zamulabs.composeapp.generated.resources.calendar_outlined
+import com.zamulabs.composeapp.generated.resources.home_filled
+import com.zamulabs.composeapp.generated.resources.home_outlined
+import com.zamulabs.composeapp.generated.resources.settings_filled
+import com.zamulabs.composeapp.generated.resources.settings_outlined
+import com.zamulabs.composeapp.generated.resources.statistics_filled
+import com.zamulabs.composeapp.generated.resources.statistics_outlined
 import org.jetbrains.compose.resources.DrawableResource
 
 enum class NavRail(

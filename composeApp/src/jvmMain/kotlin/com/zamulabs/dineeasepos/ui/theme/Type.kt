@@ -21,12 +21,12 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
-import dineeasepos.composeapp.generated.resources.Res
-import dineeasepos.composeapp.generated.resources.be_vietnampro_bold
-import dineeasepos.composeapp.generated.resources.be_vietnampro_light
-import dineeasepos.composeapp.generated.resources.be_vietnampro_medium
-import dineeasepos.composeapp.generated.resources.be_vietnampro_regular
-import dineeasepos.composeapp.generated.resources.be_vietnampro_semibold
+import com.zamulabs.composeapp.generated.resources.Res
+import com.zamulabs.composeapp.generated.resources.be_vietnampro_bold
+import com.zamulabs.composeapp.generated.resources.be_vietnampro_light
+import com.zamulabs.composeapp.generated.resources.be_vietnampro_medium
+import com.zamulabs.composeapp.generated.resources.be_vietnampro_regular
+import com.zamulabs.composeapp.generated.resources.be_vietnampro_semibold
 import org.jetbrains.compose.resources.Font
 
 @Composable

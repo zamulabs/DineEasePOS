@@ -28,8 +28,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -137,9 +139,9 @@ private fun CalendarPreviewSection(){
 private fun FakeMonth(title: String, highlightStart: Boolean = false, highlightEnd: Boolean = false){
     Column(Modifier.width(336.dp)){
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically){
-            if(highlightStart) IconButton(onClick = { }){ Icon(Icons.Default.ArrowBack, contentDescription = null) } else Spacer(Modifier.width(48.dp))
+            if(highlightStart) IconButton(onClick = { }){ Icon(Icons.AutoMirrored.Default.ArrowBack, contentDescription = null) } else Spacer(Modifier.width(48.dp))
             Text(title, style = MaterialTheme.typography.titleMedium)
-            if(highlightEnd) IconButton(onClick = { }){ Icon(Icons.Default.ArrowBack, contentDescription = null) } else Spacer(Modifier.width(48.dp))
+            if(highlightEnd) IconButton(onClick = { }){ Icon(Icons.AutoMirrored.Default.ArrowBack, contentDescription = null) } else Spacer(Modifier.width(48.dp))
         }
         Spacer(Modifier.height(8.dp))
         // Single row showing selected range 5-7
@@ -153,6 +155,6 @@ private fun FakeMonth(title: String, highlightStart: Boolean = false, highlightE
             }
         }
         Spacer(Modifier.height(8.dp))
-        Divider(color = SecondaryLightColor)
+        HorizontalDivider(color = SecondaryLightColor)
     }
 }
