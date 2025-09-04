@@ -43,13 +43,35 @@ fun OrderDetailsScreen(
                 scope.launch { state.snackbarHostState.showSnackbar(effect.message) }
             }
             is OrderDetailsUiEffect.ShowToast -> { /* TODO desktop toast */ }
+            is OrderDetailsUiEffect.NavigateToPayment -> {
+                com.zamulabs.dineeasepos.ui.navigation.Destinations.PaymentProcessing.let { dest ->
+                    navController.navigate(dest)
+                }
+            }
+            is OrderDetailsUiEffect.NavigateToReceipt -> {
+                com.zamulabs.dineeasepos.ui.navigation.Destinations.Receipt.let { dest ->
+                    navController.navigate(dest)
+                }
+            }
             OrderDetailsUiEffect.NavigateBack -> navController.popBackStack()
         }
     }
 
-    OrderDetailsScreenContent(
-        state = state,
-        onEvent = viewModel::onEvent,
-        onBack = { navController.popBackStack() }
+    // Updated: Use split pane layout to match new design (main details + side summary/actions)
+    com.zamulabs.dineeasepos.ui.components.SplitScreenScaffold(
+        main = {
+            OrderDetailsScreenContent(
+                state = state,
+                onEvent = viewModel::onEvent,
+                onBack = { navController.popBackStack() }
+            )
+        },
+        side = {
+            OrderDetailsSidePane(
+                state = state,
+                onEvent = viewModel::onEvent,
+                onBack = { navController.popBackStack() }
+            )
+        }
     )
 }

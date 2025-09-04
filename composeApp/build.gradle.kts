@@ -64,7 +64,6 @@ kotlin {
             // Compose Data Table (Material 3)
             implementation("com.seanproctor:data-table-material3:0.11.4")
 
-            implementation("org.jetbrains.compose.components:components-splitpane-desktop:1.0.1")
 
             // Ktor
             implementation(libs.ktorCore)
@@ -82,6 +81,9 @@ kotlin {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutinesSwing)
             implementation(libs.sqlite.driver)
+
+            // Compose SplitPane (Desktop-only) - updated to match Compose 1.6.x APIs and fixes
+            implementation("org.jetbrains.compose.components:components-splitpane-desktop:1.6.11")
 
             // Toaster for Windows
             implementation(libs.toast4j)

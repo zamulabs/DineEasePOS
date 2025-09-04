@@ -38,6 +38,11 @@ data class OrderManagementUiState(
     val errorLoadingOrders: String? = null,
     val orders: List<Order> = emptyList(),
     val snackbarHostState: SnackbarHostState = SnackbarHostState(),
+
+    // Side pane state
+    val selectedOrderId: String? = null,
+    val showNewOrder: Boolean = false,
+    val showPaymentProcessing: Boolean = false,
 )
 
 enum class OrderTab { All, Open, Completed }

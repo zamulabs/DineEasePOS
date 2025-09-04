@@ -49,16 +49,16 @@ data class OrderDetailsUiState(
 
 sealed interface OrderDetailsUiEvent {
     data object MarkPreparing : OrderDetailsUiEvent
-
     data object MarkReady : OrderDetailsUiEvent
-
     data object Complete : OrderDetailsUiEvent
-
     data object Cancel : OrderDetailsUiEvent
+    data object GenerateReceipt : OrderDetailsUiEvent
 }
 
 sealed class OrderDetailsUiEffect {
     data class ShowToast(val message: String) : OrderDetailsUiEffect()
     data class ShowSnackBar(val message: String) : OrderDetailsUiEffect()
     data object NavigateBack : OrderDetailsUiEffect()
+    data class NavigateToPayment(val orderId: String) : OrderDetailsUiEffect()
+    data class NavigateToReceipt(val orderId: String) : OrderDetailsUiEffect()
 }

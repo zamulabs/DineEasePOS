@@ -28,6 +28,8 @@ data class User(
 @Immutable
 data class UserManagementUiState(
     val users: List<User> = emptyList(),
+    val selectedUser: User? = null,
+    val showAddUser: Boolean = false,
     val snackbarHostState: SnackbarHostState = SnackbarHostState(),
 )
 

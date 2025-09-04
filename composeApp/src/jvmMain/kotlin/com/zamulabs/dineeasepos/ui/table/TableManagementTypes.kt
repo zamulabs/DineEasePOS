@@ -34,6 +34,8 @@ data class TableManagementUiState(
     val isLoadingTables: Boolean = false,
     val errorLoadingTables: String? = null,
     val tables: List<DiningTable> = emptyList(),
+    val selectedTable: DiningTable? = null,
+    val showAddTable: Boolean = false,
     val snackbarHostState: SnackbarHostState = SnackbarHostState(),
 )
 

@@ -25,6 +25,7 @@ import com.zamulabs.dineeasepos.ui.dashboard.DashboardViewModel
 import com.zamulabs.dineeasepos.ui.login.LoginViewModel
 import com.zamulabs.dineeasepos.ui.menu.MenuManagementViewModel
 import com.zamulabs.dineeasepos.ui.menu.addmenu.AddMenuItemViewModel
+import com.zamulabs.dineeasepos.ui.menu.details.MenuDetailsViewModel
 import com.zamulabs.dineeasepos.ui.order.OrderManagementViewModel
 import com.zamulabs.dineeasepos.ui.order.details.OrderDetailsViewModel
 import com.zamulabs.dineeasepos.ui.order.neworder.NewOrderViewModel
@@ -38,6 +39,7 @@ import com.zamulabs.dineeasepos.ui.table.addtable.AddTableViewModel
 import com.zamulabs.dineeasepos.ui.table.details.TableDetailsViewModel
 import com.zamulabs.dineeasepos.ui.user.UserManagementViewModel
 import com.zamulabs.dineeasepos.ui.user.adduser.AddUserViewModel
+import com.zamulabs.dineeasepos.ui.user.details.UserDetailsViewModel
 import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
@@ -61,6 +63,9 @@ val viewModelModule =
         singleOf(::ReceiptViewModel)
         singleOf(::ReportsViewModel)
         singleOf(::LoginViewModel)
+        // Details screens
+        singleOf(::MenuDetailsViewModel)
+        singleOf(::UserDetailsViewModel)
 
         /**
          * API Service (mocked)

@@ -29,6 +29,8 @@ data class MenuResponseDto(
     val price: String?,
     @SerialName("active")
     val active: Boolean?,
+    @SerialName("imageUrl")
+    val imageUrl: String? = null,
 ) {
     companion object {
         fun MenuResponseDto.toDomainModel(): MenuItem {
@@ -37,6 +39,7 @@ data class MenuResponseDto(
                 category = category.orEmpty(),
                 price = price.orEmpty(),
                 active = active ?: false,
+                imageUrl = imageUrl
             )
         }
     }

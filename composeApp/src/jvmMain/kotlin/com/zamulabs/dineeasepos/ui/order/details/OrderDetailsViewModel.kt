@@ -67,10 +67,19 @@ class OrderDetailsViewModel(
 
     fun onEvent(event: OrderDetailsUiEvent) {
         when (event) {
-            OrderDetailsUiEvent.Cancel -> { }
-            OrderDetailsUiEvent.Complete -> { }
-            OrderDetailsUiEvent.MarkPreparing -> { }
-            OrderDetailsUiEvent.MarkReady -> { }
+            OrderDetailsUiEvent.Cancel -> { /* TODO: cancel order via repository */ }
+            OrderDetailsUiEvent.Complete -> { /* TODO: complete order via repository */ }
+            OrderDetailsUiEvent.MarkPreparing -> {
+                // In new UX, this is used as "Process Payment" entrypoint from side pane
+                _uiEffect.trySend(OrderDetailsUiEffect.NavigateToPayment(orderId = _uiState.value.orderId))
+            }
+            OrderDetailsUiEvent.MarkReady -> { /* TODO: mark ready */ }
+            OrderDetailsUiEvent.GenerateReceipt -> {
+                // Minimal behavior: navigate to Receipts screen to view/print
+                // A real implementation would generate and pass receipt id
+                _uiEffect.trySend(OrderDetailsUiEffect.ShowSnackBar("Generating receipt..."))
+                _uiEffect.trySend(OrderDetailsUiEffect.NavigateToReceipt(orderId = _uiState.value.orderId))
+            }
         }
     }
 }

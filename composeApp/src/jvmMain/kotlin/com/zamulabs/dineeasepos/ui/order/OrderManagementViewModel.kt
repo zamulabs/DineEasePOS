@@ -42,7 +42,14 @@ class OrderManagementViewModel(
     fun onEvent(event: OrderManagementUiEvent) {
         when (event) {
             OrderManagementUiEvent.OnClickNewOrder -> {
-                // Navigation handled by Screen via event
+                // Open New Order as the main screen (not in side pane)
+                updateUiState {
+                    copy(
+                        showNewOrder = true,
+                        showPaymentProcessing = false,
+                        selectedOrderId = null
+                    )
+                }
             }
 
             is OrderManagementUiEvent.OnSearch -> {
@@ -54,9 +61,30 @@ class OrderManagementViewModel(
             }
 
             is OrderManagementUiEvent.OnClickViewDetails -> {
-                // Navigation handled by Screen
+                // Show details in side pane
+                updateUiState {
+                    copy(
+                        selectedOrderId = event.orderId,
+                        showNewOrder = false,
+                        showPaymentProcessing = false,
+                    )
+                }
             }
         }
+    }
+
+    fun closeSidePane() {
+        updateUiState { copy(selectedOrderId = null, showNewOrder = false, showPaymentProcessing = false) }
+    }
+
+    fun showPaymentProcessing() {
+        // Within New Order, open payment processing in its side pane while keeping New Order open
+        updateUiState { copy(showPaymentProcessing = true, showNewOrder = true) }
+    }
+
+    fun closePaymentPane() {
+        // Close only the payment pane while staying in New Order
+        updateUiState { copy(showPaymentProcessing = false, showNewOrder = true) }
     }
 
     fun loadOrders() {

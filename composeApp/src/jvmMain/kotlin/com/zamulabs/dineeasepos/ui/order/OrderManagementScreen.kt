@@ -21,8 +21,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.zamulabs.dineeasepos.ui.navigation.Destinations
 import com.zamulabs.dineeasepos.utils.ObserverAsEvent
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
@@ -33,7 +34,7 @@ fun OrderManagementScreen(
     modifier: Modifier = Modifier,
     viewModel: OrderManagementViewModel = koinInject<OrderManagementViewModel>()
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val state by viewModel.uiState.collectAsState()
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(viewModel) {
@@ -44,7 +45,7 @@ fun OrderManagementScreen(
         when (effect) {
             is OrderManagementUiEffect.ShowSnackBar -> {
                 scope.launch {
-                    uiState.snackbarHostState.showSnackbar(effect.message)
+                    state.snackbarHostState.showSnackbar(effect.message)
                 }
             }
             is OrderManagementUiEffect.ShowToast -> {
@@ -54,18 +55,75 @@ fun OrderManagementScreen(
         }
     }
 
-    OrderManagementScreenContent(
-        modifier = modifier,
-        onEvent = {
-            if (it is OrderManagementUiEvent.OnClickNewOrder) {
-                navController.navigate(Destinations.NewOrder)
+    // New requirement: New Order should be a full screen, not in side pane.
+    // We will show list in main; if New Order is requested, replace main with New Order content.
+    // Side pane will still be used for Order Details only.
+    // Navigate to New Order instead of embedding it here; ensure state flag is not used for UI switching.
+    val showNew = state.showNewOrder
+    if (false && showNew) {
+        val newVm: com.zamulabs.dineeasepos.ui.order.neworder.NewOrderViewModel = org.koin.compose.koinInject()
+        val newState by newVm.uiState.collectAsState()
+        androidx.compose.runtime.LaunchedEffect(newVm) { newVm.loadData() }
+        // Inside New Order, payment processing should be on its pane: embed split scaffold here
+        com.zamulabs.dineeasepos.ui.components.SplitScreenScaffold(
+            main = {
+                com.zamulabs.dineeasepos.ui.order.neworder.NewOrderScreenContent(
+                    state = newState,
+                    onEvent = newVm::onEvent,
+                    onPlaceOrder = { viewModel.showPaymentProcessing() },
+                    onBack = { viewModel.closeSidePane() }
+                )
+            },
+            side = {
+                if (state.showPaymentProcessing) {
+                    val payVm: com.zamulabs.dineeasepos.ui.payment.paymentprocessing.PaymentProcessingViewModel = org.koin.compose.koinInject()
+                    val payState by payVm.uiState.collectAsState()
+                    com.zamulabs.dineeasepos.ui.payment.paymentprocessing.PaymentProcessingScreenContent(
+                        state = payState,
+                        onEvent = payVm::onEvent,
+                        onBack = { viewModel.closePaymentPane() }
+                    )
+                } else {
+                    androidx.compose.material3.Text("Proceed to payment to open processing pane", modifier = Modifier.padding(16.dp))
+                }
             }
-            if (it is OrderManagementUiEvent.OnClickViewDetails) {
-                navController.navigate(Destinations.OrderDetails)
+        )
+    } else {
+        com.zamulabs.dineeasepos.ui.components.SplitScreenScaffold(
+            main = {
+                OrderManagementScreenContent(
+                    modifier = modifier,
+                    onEvent = { ev ->
+                        when (ev) {
+                            OrderManagementUiEvent.OnClickNewOrder -> {
+                                // Navigate to New Order independent screen
+                                com.zamulabs.dineeasepos.ui.navigation.Destinations.NewOrder.let { dest ->
+                                    navController.navigate(dest)
+                                }
+                            }
+                            else -> viewModel.onEvent(ev)
+                        }
+                    },
+                    onOrderClick = { oid -> viewModel.onEvent(OrderManagementUiEvent.OnClickViewDetails(oid)) },
+                    state = state
+                )
+            },
+            side = {
+                if (state.selectedOrderId != null) {
+                    val detailsVm: com.zamulabs.dineeasepos.ui.order.details.OrderDetailsViewModel = org.koin.compose.koinInject()
+                    val detailsState by detailsVm.uiState.collectAsState()
+                    androidx.compose.runtime.LaunchedEffect(state.selectedOrderId) {
+                        detailsVm.loadOrderDetails(state.selectedOrderId)
+                    }
+                    com.zamulabs.dineeasepos.ui.order.details.OrderDetailsScreenContent(
+                        state = detailsState,
+                        onEvent = detailsVm::onEvent,
+                        onBack = { viewModel.closeSidePane() }
+                    )
+                } else {
+                    androidx.compose.material3.Text("Select an order", modifier = Modifier.padding(16.dp))
+                }
             }
-            viewModel.onEvent(it)
-        },
-        onOrderClick = { navController.navigate(Destinations.OrderDetails) },
-        state = uiState
-    )
+        )
+    }
 }

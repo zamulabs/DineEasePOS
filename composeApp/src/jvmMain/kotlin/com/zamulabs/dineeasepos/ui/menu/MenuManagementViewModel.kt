@@ -46,7 +46,9 @@ class MenuManagementViewModel(
                 _uiEffect.trySend(MenuManagementUiEffect.ShowToast("Hello"))
             }
 
-            is MenuManagementUiEvent.OnSearch -> {}
+            is MenuManagementUiEvent.OnSearch -> {
+                updateUiState { copy(searchString = event.query) }
+            }
             is MenuManagementUiEvent.OnTabSelected -> {
                 updateUiState {
                     copy(
@@ -55,9 +57,23 @@ class MenuManagementViewModel(
                 }
             }
 
-            is MenuManagementUiEvent.OnToggleActive -> {}
+            is MenuManagementUiEvent.OnToggleActive -> {
+                val updated = uiState.value.items.map { item ->
+                    if (item.name == event.itemName) item.copy(active = !item.active) else item
+                }
+                updateUiState { copy(items = updated, selectedItem = updated.find { it.name == selectedItem?.name }) }
+            }
 
-            is MenuManagementUiEvent.OnEdit -> {}
+            is MenuManagementUiEvent.OnEdit -> {
+                // For now, treat edit as view details selection
+                val sel = uiState.value.items.find { it.name == event.itemName }
+                updateUiState { copy(selectedItem = sel) }
+            }
+
+            is MenuManagementUiEvent.OnClickViewDetails -> {
+                val sel = uiState.value.items.find { it.name == event.itemName }
+                updateUiState { copy(selectedItem = sel) }
+            }
         }
     }
 

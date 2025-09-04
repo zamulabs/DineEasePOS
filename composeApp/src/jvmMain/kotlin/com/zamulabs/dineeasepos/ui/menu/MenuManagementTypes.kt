@@ -25,40 +25,47 @@ data class MenuItem(
     val category: String,
     val price: String,
     val active: Boolean,
+    val imageUrl: String? = null,
 )
 
 @Immutable
-data class MenuManagementUiState(
-    val searchString: String = "",
-    val selectedTab: MenuTab = MenuTab.All,
+ data class MenuManagementUiState(
+     val searchString: String = "",
+     val selectedTab: MenuTab = MenuTab.All,
 
-    val isLoadingMenuItems: Boolean = false,
-    val errorLoadingMenuItems: String? = null,
-    val items: List<MenuItem> = emptyList(),
-    val snackbarHostState : SnackbarHostState = SnackbarHostState(),
-)
+     val isLoadingMenuItems: Boolean = false,
+     val errorLoadingMenuItems: String? = null,
+     val items: List<MenuItem> = emptyList(),
+     val selectedItem: MenuItem? = null,
+     val showAddMenu: Boolean = false,
+     val snackbarHostState : SnackbarHostState = SnackbarHostState(),
+ )
 
 enum class MenuTab { All, Active, Inactive }
 
 sealed interface MenuManagementUiEvent {
-    data object OnClickAddItem : MenuManagementUiEvent
+     data object OnClickAddItem : MenuManagementUiEvent
 
-    data class OnSearch(
-        val query: String,
-    ) : MenuManagementUiEvent
+     data class OnSearch(
+         val query: String,
+     ) : MenuManagementUiEvent
 
-    data class OnTabSelected(
-        val tab: MenuTab,
-    ) : MenuManagementUiEvent
+     data class OnTabSelected(
+         val tab: MenuTab,
+     ) : MenuManagementUiEvent
 
-    data class OnToggleActive(
-        val index: Int,
-    ) : MenuManagementUiEvent
+     data class OnToggleActive(
+         val itemName: String,
+     ) : MenuManagementUiEvent
 
-    data class OnEdit(
-        val index: Int,
-    ) : MenuManagementUiEvent
-}
+     data class OnEdit(
+         val itemName: String,
+     ) : MenuManagementUiEvent
+
+     data class OnClickViewDetails(
+         val itemName: String,
+     ) : MenuManagementUiEvent
+ }
 
 sealed class MenuManagementUiEffect {
     data class ShowToast(

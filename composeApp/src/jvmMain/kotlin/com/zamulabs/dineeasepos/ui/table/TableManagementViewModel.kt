@@ -42,10 +42,8 @@ class TableManagementViewModel(
     fun onEvent(event: TableManagementUiEvent) {
         when (event) {
             is TableManagementUiEvent.OnClickAddTable -> {
-                val nextNumber = (uiState.value.tables.size + 1)
-                updateUiState {
-                    copy(tables = tables + DiningTable("Table $nextNumber", 4, TableStatus.Available))
-                }
+                // Open the side pane to show Add Table form
+                updateUiState { copy(showAddTable = true) }
             }
 
             is TableManagementUiEvent.OnSearch -> {
@@ -53,7 +51,8 @@ class TableManagementViewModel(
             }
 
             is TableManagementUiEvent.OnClickViewDetails -> {
-                // Navigation handled at Screen layer
+                val selected = uiState.value.tables.find { it.number == event.tableNumber }
+                updateUiState { copy(selectedTable = selected, showAddTable = false) }
             }
         }
     }

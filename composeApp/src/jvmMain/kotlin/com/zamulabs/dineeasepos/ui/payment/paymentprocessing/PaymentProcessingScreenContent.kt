@@ -46,11 +46,12 @@ fun PaymentProcessingScreenContent(
         modifier = modifier,
         topBar = {
             BackBreadcrumb(
-                parentLabel = "Orders",
-                currentLabel = "Order ${'$'}{state.orderId}",
+                parentLabel = "Payment",
+                currentLabel = "",
                 onBack = onBack,
             )
         },
+        contentHorizontalPadding = 24.dp,
         contentList = {
         // Title provided by top bar breadcrumbs; avoid duplicate header
         item { Spacer(Modifier.height(8.dp)) }
@@ -76,13 +77,25 @@ fun PaymentProcessingScreenContent(
                 AppTextField(
                     value = state.amountReceived,
                     onValueChange = { onEvent(PaymentProcessingUiEvent.OnAmountChanged(it)) },
-                    placeholder = { Text("Amount Received") },
-                    modifier = Modifier.fillMaxWidth(0.5f),
+                    placeholder = { Text("Amount Tendered") },
+                    modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
                 )
             }
         }
-        item { Text("Change Due: ${state.changeDue}", color = MaterialTheme.colorScheme.outline, modifier = Modifier.padding(horizontal = 4.dp)) }
+        item {
+            // Change row styled like design's grid rows
+            Row(Modifier.fillMaxWidth().padding(horizontal = 4.dp)) {
+                Column(Modifier.fillMaxWidth()) {
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    Row(Modifier.fillMaxWidth().padding(vertical = 12.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("Change", color = MaterialTheme.colorScheme.outline)
+                        Text(state.changeDue)
+                    }
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                }
+            }
+        }
         item { Text("Online Payment", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 20.dp, bottom = 8.dp)) }
         item {
             Row(Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 8.dp)){
@@ -91,14 +104,14 @@ fun PaymentProcessingScreenContent(
                     selected = state.onlineGateway,
                     items = listOf("Stripe", "PayPal", "Square"),
                     onSelected = { onEvent(PaymentProcessingUiEvent.OnOnlineGatewaySelected(it)) },
-                    modifier = Modifier.fillMaxWidth(0.5f),
+                    modifier = Modifier.fillMaxWidth(),
                 )
             }
         }
         item { Text("Transaction Status: ${state.transactionStatus}", color = MaterialTheme.colorScheme.outline, modifier = Modifier.padding(horizontal = 4.dp)) }
         item {
             Row(Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 12.dp)){
-                AppButton(onClick = { onEvent(PaymentProcessingUiEvent.OnProcessPayment) }) { Text("Process Payment") }
+                AppButton(onClick = { onEvent(PaymentProcessingUiEvent.OnProcessPayment) }) { Text("Complete Payment") }
             }
         }
     }

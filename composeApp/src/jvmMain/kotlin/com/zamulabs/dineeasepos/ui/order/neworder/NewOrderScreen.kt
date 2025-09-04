@@ -19,9 +19,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.zamulabs.dineeasepos.ui.navigation.Destinations
 import com.zamulabs.dineeasepos.utils.ObserverAsEvent
 import org.koin.compose.koinInject
 
@@ -41,17 +43,58 @@ fun NewOrderScreen(
         when (effect) {
             is NewOrderUiEffect.ShowSnackBar -> {
                 // ScreenContent owns the SnackbarHostState; triggering via state
-                // If needed, we could forward messages through a stateful host; kept simple here
             }
             NewOrderUiEffect.NavigateBack -> navController.popBackStack()
         }
     }
 
-    NewOrderScreenContent(
-        state = state,
-        onEvent = viewModel::onEvent,
-        onPlaceOrder = { navController.navigate(Destinations.PaymentProcessing) },
-        onBack = { navController.popBackStack() },
-        modifier = modifier
+    // Inside New Order, we show a split: main = NewOrder; side = Payment Processing
+    val payVm: com.zamulabs.dineeasepos.ui.payment.paymentprocessing.PaymentProcessingViewModel = org.koin.compose.koinInject()
+    val payState by payVm.uiState.collectAsState()
+    var showPayment by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
+
+    com.zamulabs.dineeasepos.utils.ObserverAsEvent(payVm.uiEffect) { effect ->
+        when (effect) {
+            is com.zamulabs.dineeasepos.ui.payment.paymentprocessing.PaymentProcessingUiEffect.ShowSnackBar -> {
+                // SnackbarHost is inside PaymentProcessing content; skipping here
+            }
+            is com.zamulabs.dineeasepos.ui.payment.paymentprocessing.PaymentProcessingUiEffect.NavigateToReceipt -> {
+                // Navigate to Receipt screen on completion from side pane context
+                com.zamulabs.dineeasepos.ui.navigation.Destinations.Receipt.let { dest ->
+                    navController.navigate(dest)
+                }
+            }
+            com.zamulabs.dineeasepos.ui.payment.paymentprocessing.PaymentProcessingUiEffect.NavigateBack -> {
+                showPayment = false
+            }
+        }
+    }
+
+    com.zamulabs.dineeasepos.ui.components.SplitScreenScaffold(
+        main = {
+            NewOrderScreenContent(
+                state = state,
+                onEvent = viewModel::onEvent,
+                onPlaceOrder = {
+                    showPayment = true
+                },
+                onBack = { navController.popBackStack() },
+                modifier = modifier
+            )
+        },
+        side = {
+            if (showPayment) {
+                com.zamulabs.dineeasepos.ui.payment.paymentprocessing.PaymentProcessingScreenContent(
+                    state = payState,
+                    onEvent = payVm::onEvent,
+                    onBack = { showPayment = false }
+                )
+            } else {
+                androidx.compose.material3.Text(
+                    "Proceed to payment to open processing pane",
+                    modifier = androidx.compose.ui.Modifier.padding(16.dp)
+                )
+            }
+        }
     )
 }

@@ -22,8 +22,8 @@ import androidx.compose.runtime.Immutable
 data class PaymentProcessingUiState(
     val orderId: String = "#1234",
     val subtotal: String = "$45.00",
-    val tax: String = "$5.00",
-    val total: String = "$50.00",
+    val tax: String = "$3.60",
+    val total: String = "$48.60",
     val method: PaymentMethod = PaymentMethod.Cash,
     val amountReceived: String = "",
     val changeDue: String = "$0.00",

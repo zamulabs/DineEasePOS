@@ -57,10 +57,6 @@ fun OrderDetailsScreenContent(
         item { Spacer(Modifier.height(8.dp)) }
         // Title moved to top bar; avoid duplicate header
         item { Text("Placed on ${state.placedOn}", color = MaterialTheme.colorScheme.outline) }
-        item { SectionTitle("Order Information") }
-        item { GridRow("Customer", state.customer) }
-        item { GridRow("Table", state.table) }
-        item { GridRow("Server", state.server) }
         item { SectionTitle("Order Items") }
         item {
             AppDataTable(
@@ -74,76 +70,87 @@ fun OrderDetailsScreenContent(
                 state.items.forEach { item ->
                     row {
                         cell { Text(item.name) }
-                        cell {
-                            Text(
-                                item.quantity.toString(),
-                                color = MaterialTheme.colorScheme.outline
-                            )
-                        }
+                        cell { Text(item.quantity.toString(), color = MaterialTheme.colorScheme.outline) }
                         cell { Text(item.price, color = MaterialTheme.colorScheme.outline) }
                     }
                 }
             }
         }
-        item { SectionTitle("Order Total") }
-        item { GridRow("Subtotal", state.subtotal) }
-        item { GridRow("Tax", state.tax) }
-        item { GridRow("Total", state.total) }
-        item { SectionTitle("Order Status") }
+        item { SectionTitle("Payments") }
         item {
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
+            AppDataTable(
+                columns = listOf(
+                    DataColumn { Text("Method") },
+                    DataColumn { Text("Amount") },
+                    DataColumn { Text("Status") },
+                ),
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Column {
-                    Text("Status", style = MaterialTheme.typography.titleMedium)
-                    Text(state.orderStatus, color = MaterialTheme.colorScheme.outline)
+                // Placeholder rows reflecting design; replace with real data when available
+                row {
+                    cell { Text("Credit Card") }
+                    cell { Text("$20.00", color = MaterialTheme.colorScheme.outline) }
+                    cell { Text("Completed") }
                 }
-                Text("Confirmed")
-            }
-        }
-        item {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Start) {
-                ActionButton("Mark Preparing") { onEvent(OrderDetailsUiEvent.MarkPreparing) }
-                Spacer(Modifier.width(8.dp))
-                ActionButton("Mark Ready") { onEvent(OrderDetailsUiEvent.MarkReady) }
-                Spacer(Modifier.width(8.dp))
-                ActionButton("Complete") { onEvent(OrderDetailsUiEvent.Complete) }
-                Spacer(Modifier.width(8.dp))
-                ActionButton("Cancel") { onEvent(OrderDetailsUiEvent.Cancel) }
-            }
-        }
-        item { SectionTitle("Payment") }
-        item {
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
-                Column {
-                    Text("Status"); Text(
-                    state.paymentStatus,
-                    color = MaterialTheme.colorScheme.outline
-                )
+                row {
+                    cell { Text("Cash") }
+                    cell { Text("$12.47", color = MaterialTheme.colorScheme.outline) }
+                    cell { Text("Pending") }
                 }
-                Text(state.paymentStatus)
-            }
-        }
-        item {
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
-                Column {
-                    Text("Method"); Text(
-                    state.paymentMethod,
-                    color = MaterialTheme.colorScheme.outline
-                )
-                }
-                Text(state.paymentMethod)
             }
         }
     }
+    )
+}
+
+@Composable
+fun OrderDetailsSidePane(
+    state: OrderDetailsUiState,
+    onEvent: (OrderDetailsUiEvent) -> Unit,
+    onBack: () -> Unit,
+) {
+    AppScaffold(
+        snackbarHostState = state.snackbarHostState,
+        topBar = { /* side pane has no breadcrumb; keeps compact */ },
+        contentList = {
+            item { SectionTitle("Order Status") }
+            item {
+                Row(Modifier.fillMaxWidth()) {
+                    // Simple status dropdown stub to match design interaction
+                    com.zamulabs.dineeasepos.ui.components.ui.AppDropdown(
+                        label = "",
+                        selected = state.orderStatus,
+                        items = listOf("Placed","Preparing","Ready","Completed","Cancelled"),
+                        onSelected = { /* TODO: send status update event when backend ready */ },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            }
+            item { SectionTitle("Order Summary") }
+            item { GridRow("Subtotal", state.subtotal) }
+            item { GridRow("Tax", state.tax) }
+            item { GridRow("Total", state.total) }
+            item { SectionTitle("Payment Summary") }
+            item { GridRow("Paid", "$20.00") }
+            item { GridRow("Remaining", "$15.72") }
+            item {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Start) {
+                    ActionButton("Process Payment") { onEvent(OrderDetailsUiEvent.MarkPreparing) }
+                }
+            }
+            item {
+                Column(Modifier.fillMaxWidth()) {
+                    Spacer(Modifier.height(8.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        ActionButton("Generate Receipt") { onEvent(OrderDetailsUiEvent.GenerateReceipt) }
+                        Spacer(Modifier.width(8.dp))
+                        ActionButton("Mark as Completed") { onEvent(OrderDetailsUiEvent.Complete) }
+                    }
+                    Spacer(Modifier.height(8.dp))
+                    Row { ActionButton("Cancel Order") { onEvent(OrderDetailsUiEvent.Cancel) } }
+                }
+            }
+        }
     )
 }
 

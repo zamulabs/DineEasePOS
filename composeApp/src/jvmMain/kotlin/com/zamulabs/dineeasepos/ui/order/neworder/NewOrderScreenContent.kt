@@ -78,15 +78,19 @@ fun NewOrderScreenContent(
             Column(Modifier.weight(1f)){
                 // Title provided by BackBreadcrumb top bar; avoid duplication
                 Spacer(Modifier.height(8.dp))
-                Row(Modifier.fillMaxWidth()){
-                    TableDropdown(state){ onEvent(NewOrderUiEvent.OnTableSelected(it)) }
-                }
-                Spacer(Modifier.height(12.dp))
+                Text("Menu", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold))
+                Spacer(Modifier.height(8.dp))
                 SearchField(state.searchString){ onEvent(NewOrderUiEvent.OnSearch(it)) }
                 Spacer(Modifier.height(12.dp))
                 CategoryTabs(state){ onEvent(NewOrderUiEvent.OnCategorySelected(it)) }
                 Spacer(Modifier.height(8.dp))
-                LazyVerticalGrid(columns = GridCells.Adaptive(minSize = 158.dp), contentPadding = PaddingValues(8.dp), verticalArrangement = Arrangement.spacedBy(12.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)){
+                LazyVerticalGrid(
+                    columns = GridCells.Adaptive(minSize = 158.dp),
+                    contentPadding = PaddingValues(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.weight(1f).fillMaxWidth()
+                ){
                     items(state.items){ item ->
                         Column(Modifier.fillMaxWidth()){
                             Box(modifier = Modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(12.dp)).background(Color(0xFF223A2C)))
@@ -131,14 +135,19 @@ private fun SearchField(value: String, onChanged: (String)->Unit){
 
 @Composable
 private fun CategoryTabs(state: NewOrderUiState, onSelected: (Int)->Unit){
-    Row(Modifier.fillMaxWidth().background(Color.Transparent), horizontalArrangement = Arrangement.spacedBy(24.dp)){
+    // Categories rendered as chips in a FlowRow to wrap onto multiple lines as needed
+    androidx.compose.foundation.layout.FlowRow(
+        modifier = Modifier.fillMaxWidth().background(Color.Transparent).padding(horizontal = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
         state.categories.forEachIndexed { index, title ->
             val selected = index == state.selectedCategoryIndex
-            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(top = 8.dp, bottom = 8.dp)){
-                Text(title, color = if(selected) Color.White else Color(0xFF96C5A9), style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold))
-                Spacer(Modifier.height(8.dp))
-                Box(Modifier.height(3.dp).width(88.dp).background(if(selected) Color(0xFF38E07B) else Color.Transparent))
-            }
+            com.zamulabs.dineeasepos.ui.components.ui.AppFilterChip(
+                selected = selected,
+                onClick = { onSelected(index) },
+                label = title,
+            )
         }
     }
 }
@@ -146,11 +155,22 @@ private fun CategoryTabs(state: NewOrderUiState, onSelected: (Int)->Unit){
 @Composable
 private fun OrderSummary(state: NewOrderUiState, onNotesChanged: (String)->Unit, onPlaceOrder: ()->Unit){
     Column(Modifier.width(360.dp)){
-        Text("Order Summary", style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold))
+        Text("Table", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold))
+        Spacer(Modifier.height(8.dp))
+        // Table dropdown on side per design
+        AppDropdown(
+            label = "",
+            selected = state.selectedTable,
+            items = state.tables,
+            onSelected = { /* table change handled on main row already; keep readonly here */ },
+            modifier = Modifier.fillMaxWidth(),
+        )
         Spacer(Modifier.height(12.dp))
+        Text("Order Cart", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold))
+        Spacer(Modifier.height(8.dp))
         state.cart.forEach { item ->
-            Row(Modifier.fillMaxWidth().padding(vertical = 6.dp), horizontalArrangement = Arrangement.SpaceBetween){
-                Column{ Text(item.title, color = Color.White); Text("x${item.quantity}", color = Color(0xFF96C5A9), style = MaterialTheme.typography.bodySmall) }
+            Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), horizontalArrangement = Arrangement.SpaceBetween){
+                Column{ Text(item.title, color = Color.White); Text("Quantity: ${item.quantity}", color = Color(0xFF96C5A9), style = MaterialTheme.typography.bodySmall) }
                 Text("$" + String.format("%.2f", item.price), color = Color.White)
             }
         }
@@ -163,12 +183,13 @@ private fun OrderSummary(state: NewOrderUiState, onNotesChanged: (String)->Unit,
             singleLine = false,
         )
         Spacer(Modifier.height(8.dp))
+        Text("Order Summary", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold))
         Column(Modifier.padding(horizontal = 4.dp)){
             SummaryRow("Subtotal", state.subtotal)
             SummaryRow("Tax", state.tax)
             SummaryRow("Total", state.total)
         }
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(12.dp))
         AppButton(onClick = onPlaceOrder, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF38E07B))){
             Text("Place Order", color = Color(0xFF122118), fontWeight = FontWeight.Bold)
         }

@@ -149,9 +149,9 @@ fun MenuManagementScreenContent(
                                 }
                             }
                             cell {
-                                TextButton(onClick = { onEvent(MenuManagementUiEvent.OnEdit(index)) }) {
+                                TextButton(onClick = { onEvent(MenuManagementUiEvent.OnClickViewDetails(item.name)) }) {
                                     Text(
-                                        "Edit",
+                                        "View Details",
                                         color = Color(0xFFA6C7B5),
                                         fontWeight = FontWeight.Bold
                                     )

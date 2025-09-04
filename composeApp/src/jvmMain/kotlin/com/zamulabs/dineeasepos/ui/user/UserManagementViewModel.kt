@@ -41,8 +41,15 @@ class UserManagementViewModel(
 
     fun onEvent(event: UserManagementUiEvent) {
         when (event) {
-            is UserManagementUiEvent.OnClickAddUser -> { /* Navigation handled in Screen */ }
-            is UserManagementUiEvent.OnEdit -> { /* Navigation handled in Screen */ }
+            is UserManagementUiEvent.OnClickAddUser -> {
+                updateUiState { copy(showAddUser = true) }
+            }
+            is UserManagementUiEvent.OnEdit -> {
+                updateUiState {
+                    val u = users.getOrNull(event.index)
+                    copy(selectedUser = u, showAddUser = false)
+                }
+            }
             is UserManagementUiEvent.OnToggleActive -> {
                 updateUiState {
                     val list = users.toMutableList()

@@ -112,9 +112,7 @@ fun AppNavHost(
         }
 
         composable<Destinations.Users> {
-            UserManagementScreen(
-                onAddUser = { navController.navigate(Destinations.AddUser) }
-            )
+            UserManagementScreen()
         }
 
         composable<Destinations.AddUser> {

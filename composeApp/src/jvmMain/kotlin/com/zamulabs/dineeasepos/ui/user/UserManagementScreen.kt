@@ -23,8 +23,6 @@ import org.koin.compose.koinInject
 
 @Composable
 fun UserManagementScreen(
-    onEdit: (Int) -> Unit = {},
-    onAddUser: () -> Unit = {},
     viewModel: UserManagementViewModel = koinInject<UserManagementViewModel>()
 ){
     val state by viewModel.uiState.collectAsState()
@@ -41,13 +39,61 @@ fun UserManagementScreen(
         }
     }
 
-    UserManagementScreenContent(
-        state = state,
-        onEvent = {
-            when(it){
-                is UserManagementUiEvent.OnEdit -> onEdit(it.index)
-                is UserManagementUiEvent.OnClickAddUser -> onAddUser()
-                else -> viewModel.onEvent(it)
+    // Observe AddUser effects to close side pane and refresh list
+    val addVm = org.koin.compose.koinInject<com.zamulabs.dineeasepos.ui.user.adduser.AddUserViewModel>()
+    ObserverAsEvent(flow = addVm.uiEffect) { effect ->
+        when (effect) {
+            is com.zamulabs.dineeasepos.ui.user.adduser.AddUserUiEffect.ShowSnackBar -> {}
+            is com.zamulabs.dineeasepos.ui.user.adduser.AddUserUiEffect.ShowToast -> {}
+            com.zamulabs.dineeasepos.ui.user.adduser.AddUserUiEffect.NavigateBack -> {
+                // Close add pane and refresh users
+                viewModel.onEvent(UserManagementUiEvent.OnEdit(index = -1))
+                // Reset: set no selection and hide add
+                // simpler: update state directly via loadUsers; selection will be null, showAddUser should already be false
+                viewModel.loadUsers()
+            }
+        }
+    }
+
+    com.zamulabs.dineeasepos.ui.components.SplitScreenScaffold(
+        main = {
+            UserManagementScreenContent(
+                state = state,
+                onEvent = { ev -> viewModel.onEvent(ev) }
+            )
+        },
+        side = {
+            val showAdd = state.showAddUser
+            if (showAdd) {
+                val addVm = org.koin.compose.koinInject<com.zamulabs.dineeasepos.ui.user.adduser.AddUserViewModel>()
+                val addState by addVm.uiState.collectAsState()
+                com.zamulabs.dineeasepos.ui.user.adduser.AddUserScreenContent(
+                    state = addState,
+                    onEvent = { addVm.onEvent(it) }
+                )
+            } else {
+                // Render scaffolded user details content
+                run {
+                    val detailsVm = org.koin.compose.koinInject<com.zamulabs.dineeasepos.ui.user.details.UserDetailsViewModel>()
+                    val detailsState by detailsVm.uiState.collectAsState()
+                    androidx.compose.runtime.LaunchedEffect(state.selectedUser) {
+                        val sel = state.selectedUser
+                        if (sel != null) {
+                            detailsVm.updateUiState {
+                                copy(
+                                    name = sel.name,
+                                    role = sel.role,
+                                    active = sel.active,
+                                )
+                            }
+                        }
+                    }
+                    com.zamulabs.dineeasepos.ui.user.details.UserDetailsScreenContent(
+                        state = detailsState,
+                        onEvent = { /* could forward to VM or management VM */ },
+                        onBack = { }
+                    )
+                }
             }
         }
     )

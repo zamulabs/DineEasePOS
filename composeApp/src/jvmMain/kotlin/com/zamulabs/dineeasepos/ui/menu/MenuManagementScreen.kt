@@ -40,35 +40,96 @@ fun MenuManagementScreen(
         viewModel.getMenuItems()
     }
 
+    // Observe menu VM effects
     ObserverAsEvent(viewModel.uiEffect) { effect ->
         when (effect) {
             is MenuManagementUiEffect.ShowSnackBar -> {
                 scope.launch {
-                    uiState.snackbarHostState.showSnackbar(
-                        message = effect.message,
-                    )
+                    uiState.snackbarHostState.showSnackbar(message = effect.message)
                 }
             }
+            is MenuManagementUiEffect.ShowToast -> { /* TODO: desktop toast */ }
+            MenuManagementUiEffect.NavigateBack -> navController.popBackStack()
+        }
+    }
 
-            is MenuManagementUiEffect.ShowToast -> {
-                // TODO: find desktop lib to do this
-            }
-
-            MenuManagementUiEffect.NavigateBack -> {
-                navController.popBackStack()
+    // Observe AddMenu side-pane VM effects to close pane and refresh
+    val addVm = org.koin.compose.koinInject<com.zamulabs.dineeasepos.ui.menu.addmenu.AddMenuItemViewModel>()
+    ObserverAsEvent(addVm.uiEffect) { effect ->
+        when (effect) {
+            is com.zamulabs.dineeasepos.ui.menu.addmenu.AddMenuItemUiEffect.ShowSnackBar -> scope.launch { uiState.snackbarHostState.showSnackbar(effect.message) }
+            is com.zamulabs.dineeasepos.ui.menu.addmenu.AddMenuItemUiEffect.ShowToast -> { }
+            com.zamulabs.dineeasepos.ui.menu.addmenu.AddMenuItemUiEffect.NavigateBack -> {
+                // Close side pane and refresh
+                viewModel.updateUiState { copy(showAddMenu = false) }
+                viewModel.getMenuItems()
             }
         }
     }
 
-
-    MenuManagementScreenContent(
-        state = uiState,
-        onEvent = { ev ->
-            if (ev is MenuManagementUiEvent.OnClickAddItem) {
-                navController.navigate(Destinations.AddMenuItem)
-            }
-            viewModel.onEvent(ev)
+    // Use SplitScreenScaffold to show main list and a side pane for details or add-menu
+    com.zamulabs.dineeasepos.ui.components.SplitScreenScaffold(
+        main = {
+            MenuManagementScreenContent(
+                state = uiState,
+                onEvent = { ev ->
+                    when (ev) {
+                        is MenuManagementUiEvent.OnClickAddItem -> viewModel.updateUiState { copy(showAddMenu = true) }
+                        is MenuManagementUiEvent.OnClickViewDetails -> viewModel.onEvent(ev)
+                        is MenuManagementUiEvent.OnSearch -> viewModel.onEvent(ev)
+                        is MenuManagementUiEvent.OnTabSelected -> viewModel.onEvent(ev)
+                        is MenuManagementUiEvent.OnToggleActive -> viewModel.onEvent(ev)
+                        is MenuManagementUiEvent.OnEdit -> viewModel.onEvent(ev)
+                    }
+                },
+                modifier = modifier
+            )
         },
-        modifier = modifier
+        side = {
+            val showAdd = uiState.showAddMenu
+            if (showAdd) {
+                val addState by addVm.uiState.collectAsState()
+                com.zamulabs.dineeasepos.ui.menu.addmenu.AddMenuItemScreenContent(
+                    state = addState,
+                    onEvent = addVm::onEvent,
+                    onSave = { addVm.onEvent(com.zamulabs.dineeasepos.ui.menu.addmenu.AddMenuItemUiEvent.OnSave) },
+                    onCancel = { viewModel.updateUiState { copy(showAddMenu = false) } }
+                )
+            } else {
+                // Render scaffolded details content in side pane
+                run {
+                    val detailsVm = org.koin.compose.koinInject<com.zamulabs.dineeasepos.ui.menu.details.MenuDetailsViewModel>()
+                    val detailsState by detailsVm.uiState.collectAsState()
+                    // Push selected item into details state when changed
+                    androidx.compose.runtime.LaunchedEffect(uiState.selectedItem) {
+                        val sel = uiState.selectedItem
+                        if (sel != null) {
+                            detailsVm.updateUiState {
+                                copy(
+                                    name = sel.name,
+                                    category = sel.category,
+                                    price = sel.price,
+                                    active = sel.active,
+                                )
+                            }
+                        }
+                    }
+                    com.zamulabs.dineeasepos.ui.menu.details.MenuDetailsScreenContent(
+                        state = detailsState,
+                        onEvent = { ev ->
+                            when (ev) {
+                                com.zamulabs.dineeasepos.ui.menu.details.MenuDetailsUiEvent.Edit -> { /* future edit */ }
+                                com.zamulabs.dineeasepos.ui.menu.details.MenuDetailsUiEvent.ToggleActive -> {
+                                    uiState.selectedItem?.let { viewModel.onEvent(MenuManagementUiEvent.OnToggleActive(it.name)) }
+                                    detailsVm.onEvent(ev)
+                                }
+                                com.zamulabs.dineeasepos.ui.menu.details.MenuDetailsUiEvent.Delete -> { /* future delete */ }
+                            }
+                        },
+                        onBack = { /* side pane has no back; ignore */ }
+                    )
+                }
+            }
+        }
     )
 }
