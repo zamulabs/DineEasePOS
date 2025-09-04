@@ -33,9 +33,18 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -53,79 +62,239 @@ import com.zamulabs.dineeasepos.ui.components.ui.AppScaffold
 import com.zamulabs.dineeasepos.ui.components.ui.AppTextField
 import com.zamulabs.dineeasepos.ui.components.ui.BackBreadcrumb
 
-// Image dependency not available; using placeholder box
-
+// 🟢 Order Menu Pane
 @Composable
-fun NewOrderScreenContent(
+fun OrderMenuPane(
     state: NewOrderUiState,
     onEvent: (NewOrderUiEvent) -> Unit,
-    onPlaceOrder: () -> Unit,
-    onBack: () -> Unit,
     modifier: Modifier = Modifier
-){
+) {
     AppScaffold(
         modifier = modifier,
-        snackbarHostState = state.snackbarHostState,
         topBar = {
             BackBreadcrumb(
-                parentLabel = "Orders",
-                currentLabel = "New Order",
-                onBack = onBack,
+                parentLabel = "Menu",
             )
         },
-        content = { innerPadding ->
-        Row(Modifier.fillMaxSize().padding(innerPadding).padding(horizontal = 24.dp, vertical = 16.dp)){
-            Column(Modifier.weight(1f)){
-                // Title provided by BackBreadcrumb top bar; avoid duplication
-                Spacer(Modifier.height(8.dp))
-                Text("Menu", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold))
-                Spacer(Modifier.height(8.dp))
-                SearchField(state.searchString){ onEvent(NewOrderUiEvent.OnSearch(it)) }
-                Spacer(Modifier.height(12.dp))
-                CategoryTabs(state){ onEvent(NewOrderUiEvent.OnCategorySelected(it)) }
-                Spacer(Modifier.height(8.dp))
-                LazyVerticalGrid(
-                    columns = GridCells.Adaptive(minSize = 158.dp),
-                    contentPadding = PaddingValues(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.weight(1f).fillMaxWidth()
-                ){
-                    items(state.items){ item ->
-                        Column(Modifier.fillMaxWidth()){
-                            Box(modifier = Modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(12.dp)).background(Color(0xFF223A2C)))
-                            Spacer(Modifier.height(8.dp))
-                            Text(item.title, color = Color.White, style = MaterialTheme.typography.titleMedium)
-                            Text(item.description, color = Color(0xFF96C5A9), style = MaterialTheme.typography.bodySmall)
-                            Spacer(Modifier.height(8.dp))
-                            AppButton(onClick = { onEvent(NewOrderUiEvent.OnAddToCart(item.title)) }, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF38E07B))){ Text("Add", color = Color(0xFF122118)) }
+        contentHorizontalPadding = 24.dp,
+    )
+    {
+        Column {
+            Spacer(Modifier.height(8.dp))
+            SearchField(state.searchString) { onEvent(NewOrderUiEvent.OnSearch(it)) }
+            Spacer(Modifier.height(12.dp))
+            CategoryTabs(state) { onEvent(NewOrderUiEvent.OnCategorySelected(it)) }
+            Spacer(Modifier.height(8.dp))
+
+            LazyVerticalGrid(
+                columns = GridCells.Adaptive(minSize = 158.dp),
+                contentPadding = PaddingValues(8.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.weight(1f).fillMaxWidth()
+            ) {
+                items(state.items) { item ->
+                    Column(Modifier.fillMaxWidth()) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .aspectRatio(1f)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(Color(0xFF223A2C))
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            item.title,
+                            color = Color.White,
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        Text(
+                            item.description,
+                            color = Color(0xFF96C5A9),
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        AppButton(
+                            onClick = { onEvent(NewOrderUiEvent.OnAddToCart(item.title)) },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF38E07B))
+                        ) {
+                            Text("Add", color = Color(0xFF122118))
                         }
                     }
                 }
             }
-            Spacer(Modifier.width(24.dp))
-            OrderSummary(state = state, onNotesChanged = { onEvent(NewOrderUiEvent.OnNotesChanged(it)) }, onPlaceOrder = onPlaceOrder, onEvent = onEvent)
         }
     }
-)
 }
 
+// 🟢 Order Summary Pane
 @Composable
-private fun TableDropdown(state: NewOrderUiState, onChanged: (String)->Unit){
-    var expanded by remember { mutableStateOf(false) }
-    Box(Modifier.widthIn(max = 480.dp)){
-        AppDropdown(
-            label = "Table",
-            selected = state.selectedTable,
-            items = state.tables,
-            onSelected = { onChanged(it) },
-            modifier = Modifier.fillMaxWidth(),
-        )
+fun OrderSummaryPane(
+    state: NewOrderUiState,
+    onNotesChanged: (String) -> Unit,
+    onPlaceOrder: () -> Unit,
+    onEvent: (NewOrderUiEvent) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    AppScaffold(
+        modifier = modifier,
+        topBar = {
+            BackBreadcrumb(
+                parentLabel = "Table",
+            )
+        },
+        contentHorizontalPadding = 24.dp,
+    )
+    {
+        Column {
+            Spacer(Modifier.height(8.dp))
+            AppDropdown(
+                label = "Table",
+                items = state.tables,
+                selected = state.selectedTable,
+                onSelected = {
+                    onEvent(NewOrderUiEvent.OnTableSelected(it))
+                }
+            )
+            Spacer(Modifier.height(12.dp))
+
+            Text(
+                "Order Cart",
+                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
+            )
+
+            Spacer(Modifier.height(8.dp))
+
+            state.cart.forEach { item ->
+                CartItemRow(
+                    item = item,
+                    onEvent = onEvent,
+                )
+            }
+
+            Spacer(Modifier.height(8.dp))
+            AppTextField(
+                value = state.notes,
+                onValueChange = onNotesChanged,
+                placeholder = { Text("Special Instructions", color = Color(0xFF96C5A9)) },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = false,
+            )
+            Spacer(Modifier.height(8.dp))
+
+            Text(
+                "Order Summary",
+                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
+            )
+            Column(Modifier.padding(horizontal = 4.dp)) {
+                SummaryRow("Subtotal", state.subtotal)
+                SummaryRow("Tax", state.tax)
+                SummaryRow("Total", state.total)
+            }
+            Spacer(Modifier.height(12.dp))
+
+            AppButton(
+                onClick = onPlaceOrder,
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF38E07B))
+            ) {
+                Text("Place Order", color = Color(0xFF122118), fontWeight = FontWeight.Bold)
+            }
+        }
     }
 }
 
 @Composable
-private fun SearchField(value: String, onChanged: (String)->Unit){
+fun CartItemRow(
+    item: CartItem,
+    onEvent: (NewOrderUiEvent) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(vertical = 6.dp),
+        shape = MaterialTheme.shapes.medium,
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            // ─── Top: Item title + quantity controls ───────────────
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column {
+                    Text(
+                        text = item.title,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = "Qty: ${item.quantity}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    IconButton(
+                        onClick = { onEvent(NewOrderUiEvent.OnDecQty(item.title)) },
+                        colors = IconButtonDefaults.filledIconButtonColors(
+                            containerColor = MaterialTheme.colorScheme.primaryContainer
+                        )
+                    ) {
+                        Icon(Icons.Default.Remove, contentDescription = "Decrease")
+                    }
+                    IconButton(
+                        onClick = { onEvent(NewOrderUiEvent.OnIncQty(item.title)) },
+                        colors = IconButtonDefaults.filledIconButtonColors(
+                            containerColor = MaterialTheme.colorScheme.primary
+                        )
+                    ) {
+                        Icon(Icons.Default.Add, contentDescription = "Increase")
+                    }
+                }
+            }
+
+            // ─── Bottom: Price + Remove ───────────────────────────
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "$" + String.format("%.2f", item.price),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                TextButton(
+                    onClick = { onEvent(NewOrderUiEvent.OnRemoveItem(item.title)) },
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = MaterialTheme.colorScheme.error
+                    )
+                ) {
+                    Text("Remove")
+                }
+            }
+        }
+    }
+}
+
+
+@Composable
+private fun SearchField(value: String, onChanged: (String) -> Unit) {
     AppTextField(
         value = value,
         onValueChange = onChanged,
@@ -136,7 +305,7 @@ private fun SearchField(value: String, onChanged: (String)->Unit){
 }
 
 @Composable
-private fun CategoryTabs(state: NewOrderUiState, onSelected: (Int)->Unit){
+private fun CategoryTabs(state: NewOrderUiState, onSelected: (Int) -> Unit) {
     // Categories rendered as chips in a FlowRow to wrap onto multiple lines as needed
     androidx.compose.foundation.layout.FlowRow(
         modifier = Modifier.fillMaxWidth().background(Color.Transparent).padding(horizontal = 4.dp),
@@ -155,9 +324,17 @@ private fun CategoryTabs(state: NewOrderUiState, onSelected: (Int)->Unit){
 }
 
 @Composable
-private fun OrderSummary(state: NewOrderUiState, onNotesChanged: (String)->Unit, onPlaceOrder: ()->Unit, onEvent: (NewOrderUiEvent)->Unit){
-    Column(Modifier.width(360.dp)){
-        Text("Table", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold))
+private fun OrderSummary(
+    state: NewOrderUiState,
+    onNotesChanged: (String) -> Unit,
+    onPlaceOrder: () -> Unit,
+    onEvent: (NewOrderUiEvent) -> Unit
+) {
+    Column(Modifier.width(360.dp)) {
+        Text(
+            "Table",
+            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
+        )
         Spacer(Modifier.height(8.dp))
         // Table dropdown on side per design
         AppDropdown(
@@ -168,15 +345,40 @@ private fun OrderSummary(state: NewOrderUiState, onNotesChanged: (String)->Unit,
             modifier = Modifier.fillMaxWidth(),
         )
         Spacer(Modifier.height(12.dp))
-        Text("Order Cart", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold))
+        Text(
+            "Order Cart",
+            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
+        )
         Spacer(Modifier.height(8.dp))
         state.cart.forEach { item ->
-            Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically){
-                Column{ Text(item.title, color = Color.White); Text("Quantity: ${item.quantity}", color = Color(0xFF96C5A9), style = MaterialTheme.typography.bodySmall) }
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically){
-                    AppButton(onClick = { onEvent(NewOrderUiEvent.OnDecQty(item.title)) }, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF264532))){ Text("-") }
-                    AppButton(onClick = { onEvent(NewOrderUiEvent.OnIncQty(item.title)) }, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF38E07B))){ Text("+") }
-                    AppButton(onClick = { onEvent(NewOrderUiEvent.OnRemoveItem(item.title)) }, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF8B1E1E))){ Text("Remove") }
+            Row(
+                Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column {
+                    Text(item.title, color = Color.White); Text(
+                    "Quantity: ${item.quantity}",
+                    color = Color(0xFF96C5A9),
+                    style = MaterialTheme.typography.bodySmall
+                )
+                }
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    AppButton(
+                        onClick = { onEvent(NewOrderUiEvent.OnDecQty(item.title)) },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF264532))
+                    ) { Text("-") }
+                    AppButton(
+                        onClick = { onEvent(NewOrderUiEvent.OnIncQty(item.title)) },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF38E07B))
+                    ) { Text("+") }
+                    AppButton(
+                        onClick = { onEvent(NewOrderUiEvent.OnRemoveItem(item.title)) },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF8B1E1E))
+                    ) { Text("Remove") }
                     Text("$" + String.format("%.2f", item.price), color = Color.White)
                 }
             }
@@ -190,23 +392,37 @@ private fun OrderSummary(state: NewOrderUiState, onNotesChanged: (String)->Unit,
             singleLine = false,
         )
         Spacer(Modifier.height(8.dp))
-        Text("Order Summary", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold))
-        Column(Modifier.padding(horizontal = 4.dp)){
+        Text(
+            "Order Summary",
+            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
+        )
+        Column(Modifier.padding(horizontal = 4.dp)) {
             SummaryRow("Subtotal", state.subtotal)
             SummaryRow("Tax", state.tax)
             SummaryRow("Total", state.total)
         }
         Spacer(Modifier.height(12.dp))
-        AppButton(onClick = onPlaceOrder, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF38E07B))){
+        AppButton(
+            onClick = onPlaceOrder,
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF38E07B))
+        ) {
             Text("Place Order", color = Color(0xFF122118), fontWeight = FontWeight.Bold)
         }
     }
 }
 
 @Composable
-private fun SummaryRow(label: String, value: Double){
-    Row(Modifier.fillMaxWidth().padding(vertical = 6.dp), horizontalArrangement = Arrangement.SpaceBetween){
+private fun SummaryRow(label: String, value: Double) {
+    Row(
+        Modifier.fillMaxWidth().padding(vertical = 6.dp),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
         Text(label, color = Color(0xFF96C5A9), style = MaterialTheme.typography.bodySmall)
-        Text("$" + String.format("%.2f", value), color = Color.White, style = MaterialTheme.typography.bodySmall)
+        Text(
+            "$" + String.format("%.2f", value),
+            color = Color.White,
+            style = MaterialTheme.typography.bodySmall
+        )
     }
 }

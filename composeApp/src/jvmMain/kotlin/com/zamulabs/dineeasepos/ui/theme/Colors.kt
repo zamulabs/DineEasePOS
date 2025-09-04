@@ -18,7 +18,7 @@ package com.zamulabs.dineeasepos.ui.theme
 import androidx.compose.ui.graphics.Color
 
 val PrimaryColor = Color(0xFF366347)
-val PrimaryLightColor = Color(0xFF96C4A8)
+val PrimaryLightColor = Color(0xFF38E07B)
 
 val SecondaryColor = Color(0xFF264533)
 val SecondaryLightColor = Color(0xFF1C3024)

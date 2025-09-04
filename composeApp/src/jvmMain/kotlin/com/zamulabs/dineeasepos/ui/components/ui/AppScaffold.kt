@@ -16,6 +16,7 @@
 package com.zamulabs.dineeasepos.ui.components.ui
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -90,8 +91,8 @@ fun AppScaffold(
     floatingActionButtonPosition: FabPosition = FabPosition.End,
     contentHorizontalPadding: Dp = 40.dp,
     contentVerticalSpacing: Dp = 8.dp,
-    content: @Composable (PaddingValues) -> Unit = {},
     contentList: (LazyListScope.() -> Unit)? = null,
+    content: @Composable () -> Unit = {},
 ) {
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -114,7 +115,14 @@ fun AppScaffold(
                 contentList()
             }
         } else {
-            content(innerPadding)
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .padding(horizontal = contentHorizontalPadding),
+            ) {
+                content()
+            }
         }
     }
 }

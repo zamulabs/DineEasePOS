@@ -19,11 +19,13 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CornerBasedShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
@@ -34,14 +36,17 @@ import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -99,7 +104,6 @@ fun AppButton(
     enabled: Boolean = true,
     loading: Boolean = false,
     shape: CornerBasedShape = MaterialTheme.shapes.extraLarge,
-    height: Dp = 48.dp,
     colors: ButtonColors = ButtonDefaults.buttonColors(),
     content: @Composable RowScope.() -> Unit,
 ) {
@@ -107,12 +111,12 @@ fun AppButton(
         onClick = onClick,
         enabled = enabled && !loading,
         shape = shape,
-        modifier = modifier.height(height),
+        modifier = modifier,
         colors = colors,
     ) {
         if (loading) {
             CircularProgressIndicator(
-                modifier = Modifier.height(20.dp),
+                modifier = Modifier.size(16.dp),
                 strokeWidth = 2.dp,
                 color = MaterialTheme.colorScheme.onPrimary
             )
@@ -160,7 +164,7 @@ fun <T> AppDropdown(
             value = selected?.let(itemLabel) ?: "",
             onValueChange = {},
             readOnly = true,
-            label = { Text(label) },
+            textStyle = MaterialTheme.typography.bodySmall,
             placeholder = { if (placeholder.isNotEmpty()) Text(placeholder) },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded.value) },
             modifier = modifier.height(56.dp).menuAnchor(),
@@ -176,6 +180,9 @@ fun <T> AppDropdown(
         }
     }
 }
+
+
+
 
 // FilterChip wrapper for consistent shape and colors
 @Composable
@@ -203,9 +210,9 @@ fun AppFilterChip(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BackBreadcrumb(
-    parentLabel: String,
-    currentLabel: String,
-    onBack: () -> Unit,
+    parentLabel: String? = null,
+    currentLabel: String? = null,
+    onBack: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
     actions: @Composable () -> Unit = {},
 ) {
@@ -216,23 +223,28 @@ fun BackBreadcrumb(
         actions = actions,
         titleContent = {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = parentLabel,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    style = MaterialTheme.typography.titleMedium
-                )
-                Spacer(Modifier.width(6.dp))
-                Text(
-                    text = "/",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    style = MaterialTheme.typography.titleMedium
-                )
-                Spacer(Modifier.width(6.dp))
-                Text(
-                    text = currentLabel,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    style = MaterialTheme.typography.titleMedium
-                )
+                if (parentLabel != null) {
+                    Text(
+                        text = parentLabel,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                }
+                if (currentLabel != null) {
+                    Spacer(Modifier.width(6.dp))
+                    Text(
+                        text = "/",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Spacer(Modifier.width(6.dp))
+
+                    Text(
+                        text = currentLabel,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                }
             }
         }
     )

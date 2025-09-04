@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -45,11 +46,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import com.zamulabs.composeapp.generated.resources.Res
+import com.zamulabs.composeapp.generated.resources.compose_multiplatform
 import com.zamulabs.dineeasepos.ui.navigation.Destinations
 import com.zamulabs.dineeasepos.ui.navigation.NavRail
-import dineeasepos.composeapp.generated.resources.Res
-import dineeasepos.composeapp.generated.resources.compose_multiplatform
 import org.jetbrains.compose.resources.painterResource
+import kotlinx.coroutines.launch
 
 @Composable
 fun AppNavigationRailBar(
@@ -66,6 +68,7 @@ fun AppNavigationRailBar(
     val roleState = roleFlow.collectAsState(initial = "Admin")
     val role = roleState.value ?: "Admin"
     val devOverride = settings.superAdminDevOverride().collectAsState(initial = false).value
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
 
     fun filteredNavItems(): List<NavRail> {
         if (devOverride) return NavRail.entries
@@ -78,7 +81,9 @@ fun AppNavigationRailBar(
     }
 
     NavigationRail(
-        modifier = modifier.fillMaxWidth(.2f),
+        modifier = modifier
+            .fillMaxHeight() // rail should stretch vertically
+            .padding(end = 8.dp), // optional spacing before content
         containerColor = MaterialTheme.colorScheme.surface,
         header = {
             Row(
@@ -176,46 +181,36 @@ fun AppNavigationRailBar(
                 }
             }
 
-
-//            Column(
-//                modifier = Modifier
-//                    .align(Alignment.BottomStart)
-//                    .wrapContentSize()
-//                    .background(Color.Red)
-//            ) {
-//                // New order button
-//                Button(
-//                    onClick = { navController.navigate(Destinations.NewOrder) },
-//                    modifier = Modifier
-//                        .fillMaxWidth(),
-//                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-//                        containerColor = Color(0xFF38E07B),
-//                        contentColor = Color(0xFF122118)
-//                    )
-//                ) {
-//                    Text(
-//                        text = "New order",
-//                        style = MaterialTheme.typography.bodyMedium
-//                    )
-//                }
-//
-//                // Help and feedback item
-//                Row(
-//                    modifier = Modifier
-//                        .fillMaxWidth()
-//                        .clip(RoundedCornerShape(8.dp))
-//                        .clickable { /* TODO: hook help action */ }
-//                        .padding(horizontal = 12.dp, vertical = 12.dp),
-//                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-//                    verticalAlignment = Alignment.CenterVertically
-//                ) {
-//                    Text(
-//                        text = "Help and feedback",
-//                        style = MaterialTheme.typography.bodyMedium,
-//                        color = MaterialTheme.colorScheme.onSurface
-//                    )
-//                }
-//            }
+            // Logout action anchored at the bottom
+            Row(
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(8.dp))
+                    .clickable {
+                        scope.launch {
+                            // Clear all stored user/session data
+                            settings.clearAll()
+                            // Navigate to Login and clear back stack
+                            navController.navigate(Destinations.Login) {
+                                popUpTo(navController.graph.startDestinationId) {
+                                    inclusive = true
+                                }
+                                launchSingleTop = true
+                                restoreState = false
+                            }
+                        }
+                    }
+                    .padding(horizontal = 12.dp, vertical = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Logout",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
         }
     }
 }

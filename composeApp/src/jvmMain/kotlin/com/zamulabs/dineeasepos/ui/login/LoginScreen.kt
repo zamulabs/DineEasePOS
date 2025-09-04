@@ -56,7 +56,6 @@ fun LoginScreen(
     LoginScreenContent(
         state = state,
         onEvent = vm::onEvent,
-        onLoginSuccess = { /* navigation handled via effect */ },
         modifier = modifier
     )
 }

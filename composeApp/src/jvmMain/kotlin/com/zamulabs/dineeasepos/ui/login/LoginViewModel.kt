@@ -92,7 +92,8 @@ class LoginViewModel(
                     val globalReset = settings.passwordResetRequired().firstOrNull() == true
                     val firstLoginEmail = settings.getFirstLoginEmail().firstOrNull()
                     val isFirstLoginForThisUser = firstLoginEmail?.equals(email, ignoreCase = true) == true
-                    val mustReset = globalReset || isFirstLoginForThisUser
+                    val mustReset = false
+                        // globalReset || isFirstLoginForThisUser
                     if (mustReset) {
                         updateUiState { copy(showResetPassword = true) }
                         _uiEffect.send(LoginUiEffect.ShowSnackBar("Password reset required. Please set a new password."))

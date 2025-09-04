@@ -18,12 +18,8 @@ package com.zamulabs.dineeasepos.ui.user
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -36,6 +32,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.seanproctor.datatable.DataColumn
 import com.zamulabs.dineeasepos.ui.components.table.AppDataTable
+import com.zamulabs.dineeasepos.ui.components.ui.AppButton
 import com.zamulabs.dineeasepos.ui.components.ui.AppScaffold
 import com.zamulabs.dineeasepos.ui.components.ui.AppScreenTopBar
 import com.zamulabs.dineeasepos.ui.theme.PrimaryLightColor
@@ -45,21 +42,25 @@ fun UserManagementScreenContent(
     state: UserManagementUiState,
     onEvent: (UserManagementUiEvent) -> Unit,
     modifier: Modifier = Modifier,
-){
+) {
     AppScaffold(
         snackbarHostState = state.snackbarHostState,
         modifier = modifier,
-        topBar = { AppScreenTopBar(title = "Users") },
-        contentHorizontalPadding = 24.dp,
-        contentList = {
-            item {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically){
-                    Button(onClick = { onEvent(UserManagementUiEvent.OnClickAddUser) }, colors = ButtonDefaults.buttonColors(containerColor = PrimaryLightColor)){
+        topBar = {
+            AppScreenTopBar(
+                title = "Users",
+                actions = {
+                    AppButton(
+                        onClick = { onEvent(UserManagementUiEvent.OnClickAddUser) },
+                        colors = ButtonDefaults.buttonColors(containerColor = PrimaryLightColor)
+                    ) {
                         Text("Add User")
                     }
                 }
-            }
-            item { Spacer(Modifier.height(12.dp)) }
+            )
+        },
+        contentHorizontalPadding = 24.dp,
+        contentList = {
             item {
                 AppDataTable(
                     columns = listOf(
@@ -69,24 +70,68 @@ fun UserManagementScreenContent(
                         DataColumn { Text("Actions") },
                     ),
                     paginated = false,
-                ){
+                ) {
                     state.users.forEachIndexed { index, user ->
                         row {
                             cell { Text(user.name) }
                             cell { Text(user.role, color = Color(0xFFA6C7B5)) }
                             cell {
                                 val bg = Color(0xFF264532)
-                                Row(modifier = Modifier.clip(RoundedCornerShape(24.dp)).background(bg).padding(horizontal = 16.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically){
-                                    Text(if(user.active) "Active" else "Inactive", color = Color.White)
+                                Row(
+                                    modifier = Modifier.clip(RoundedCornerShape(24.dp))
+                                        .background(bg)
+                                        .padding(horizontal = 16.dp, vertical = 6.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        if (user.active) "Active" else "Inactive",
+                                        color = Color.White
+                                    )
                                 }
                             }
                             cell {
-                                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)){
-                                    TextButton(onClick = { onEvent(UserManagementUiEvent.OnEdit(index)) }){ Text("Edit", color = Color(0xFFA6C7B5), fontWeight = FontWeight.Bold) }
+                                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                    TextButton(onClick = {
+                                        onEvent(
+                                            UserManagementUiEvent.OnEdit(
+                                                index
+                                            )
+                                        )
+                                    }) {
+                                        Text(
+                                            "Edit",
+                                            color = Color(0xFFA6C7B5),
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    }
                                     Text("|", color = Color(0xFFA6C7B5))
-                                    TextButton(onClick = { onEvent(UserManagementUiEvent.OnToggleActive(index)) }){ Text(if(user.active) "Deactivate" else "Activate", color = Color(0xFFA6C7B5), fontWeight = FontWeight.Bold) }
+                                    TextButton(onClick = {
+                                        onEvent(
+                                            UserManagementUiEvent.OnToggleActive(
+                                                index
+                                            )
+                                        )
+                                    }) {
+                                        Text(
+                                            if (user.active) "Deactivate" else "Activate",
+                                            color = Color(0xFFA6C7B5),
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    }
                                     Text("|", color = Color(0xFFA6C7B5))
-                                    TextButton(onClick = { onEvent(UserManagementUiEvent.OnResetPassword(index)) }){ Text("Reset Password", color = Color(0xFFA6C7B5), fontWeight = FontWeight.Bold) }
+                                    TextButton(onClick = {
+                                        onEvent(
+                                            UserManagementUiEvent.OnResetPassword(
+                                                index
+                                            )
+                                        )
+                                    }) {
+                                        Text(
+                                            "Reset Password",
+                                            color = Color(0xFFA6C7B5),
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    }
                                 }
                             }
                         }

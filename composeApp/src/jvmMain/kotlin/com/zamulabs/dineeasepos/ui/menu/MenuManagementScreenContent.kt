@@ -58,23 +58,18 @@ fun MenuManagementScreenContent(
     modifier: Modifier = Modifier,
 ) {
     val settings: com.zamulabs.dineeasepos.data.SettingsRepository = org.koin.compose.koinInject()
-    val role = settings.getUserString(com.zamulabs.dineeasepos.data.PreferenceManager.USER_TYPE).collectAsState(initial = "Admin").value?.trim()?.lowercase()
+    val role = settings.getUserString(com.zamulabs.dineeasepos.data.PreferenceManager.USER_TYPE)
+        .collectAsState(initial = "Admin").value?.trim()?.lowercase()
     val devOverride = settings.superAdminDevOverride().collectAsState(initial = true).value
     val canManage = devOverride || role == "admin"
     var pendingDelete by remember { mutableStateOf<String?>(null) }
     AppScaffold(
         snackbarHostState = state.snackbarHostState,
         modifier = modifier,
-        topBar = { AppScreenTopBar(title = "Menu Management") },
-        contentHorizontalPadding = 24.dp,
-        contentList = {
-            item {
-                Row(
-                    Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    // Title moved to TopAppBar; keep only actions here
+        topBar = {
+            AppScreenTopBar(
+                title = "Menu Management",
+                actions = {
                     if (canManage) {
                         AppButton(
                             onClick = { onEvent(MenuManagementUiEvent.OnClickAddItem) },
@@ -84,8 +79,10 @@ fun MenuManagementScreenContent(
                         }
                     }
                 }
-            }
-            item { Spacer(Modifier.height(16.dp)) }
+            )
+        },
+        contentHorizontalPadding = 24.dp,
+        contentList = {
             item {
                 var query by remember(state.searchString) { mutableStateOf(state.searchString) }
                 AppTextField(
@@ -157,8 +154,17 @@ fun MenuManagementScreenContent(
                                 }
                             }
                             cell {
-                                Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-                                    TextButton(onClick = { onEvent(MenuManagementUiEvent.OnClickViewDetails(item.name)) }) {
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    TextButton(onClick = {
+                                        onEvent(
+                                            MenuManagementUiEvent.OnClickViewDetails(
+                                                item.name
+                                            )
+                                        )
+                                    }) {
                                         Text(
                                             "View Details",
                                             color = Color(0xFFA6C7B5),
@@ -167,9 +173,29 @@ fun MenuManagementScreenContent(
                                     }
                                     if (canManage) {
                                         Text("|", color = Color(0xFFA6C7B5))
-                                        TextButton(onClick = { onEvent(MenuManagementUiEvent.OnEdit(item.name)) }) { Text("Edit", color = Color(0xFFA6C7B5), fontWeight = FontWeight.Bold) }
+                                        TextButton(onClick = {
+                                            onEvent(
+                                                MenuManagementUiEvent.OnEdit(
+                                                    item.name
+                                                )
+                                            )
+                                        }) {
+                                            Text(
+                                                "Edit",
+                                                color = Color(0xFFA6C7B5),
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                        }
                                         Text("|", color = Color(0xFFA6C7B5))
-                                        TextButton(onClick = { pendingDelete = item.name }) { Text("Delete", color = Color(0xFFA6C7B5), fontWeight = FontWeight.Bold) }
+                                        TextButton(onClick = {
+                                            pendingDelete = item.name
+                                        }) {
+                                            Text(
+                                                "Delete",
+                                                color = Color(0xFFA6C7B5),
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                        }
                                     }
                                 }
                             }
@@ -186,7 +212,9 @@ fun MenuManagementScreenContent(
             title = { Text("Delete Item") },
             text = { Text("Are you sure you want to delete '$name'? This action cannot be undone.") },
             confirmButton = {
-                TextButton(onClick = { onEvent(MenuManagementUiEvent.OnDelete(name)); pendingDelete = null }) { Text("Delete") }
+                TextButton(onClick = {
+                    onEvent(MenuManagementUiEvent.OnDelete(name)); pendingDelete = null
+                }) { Text("Delete") }
             },
             dismissButton = {
                 TextButton(onClick = { pendingDelete = null }) { Text("Cancel") }

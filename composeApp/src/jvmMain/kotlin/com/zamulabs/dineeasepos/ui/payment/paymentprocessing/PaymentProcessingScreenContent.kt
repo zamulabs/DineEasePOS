@@ -47,7 +47,6 @@ fun PaymentProcessingScreenContent(
         topBar = {
             BackBreadcrumb(
                 parentLabel = "Payment",
-                currentLabel = "",
                 onBack = onBack,
             )
         },
@@ -85,12 +84,10 @@ fun PaymentProcessingScreenContent(
         }
         // Quick tender buttons per user story
         item {
-            Row(Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 4.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                AppButton(onClick = { onEvent(PaymentProcessingUiEvent.OnAmountChanged(state.total.filter { it.isDigit() || it == '.' })) }) { Text("Exact") }
-                AppButton(onClick = { onEvent(PaymentProcessingUiEvent.OnAmountChanged("100")) }) { Text("100 KES") }
-                AppButton(onClick = { onEvent(PaymentProcessingUiEvent.OnAmountChanged("200")) }) { Text("200 KES") }
-                AppButton(onClick = { onEvent(PaymentProcessingUiEvent.OnAmountChanged("500")) }) { Text("500 KES") }
-            }
+            QuickTenderButtons(
+                state = state,
+                onEvent = onEvent,
+            )
         }
         item {
             // Change row styled like design's grid rows
@@ -132,6 +129,43 @@ fun PaymentProcessingScreenContent(
     }
     )
 }
+
+@Composable
+private fun QuickTenderButtons(
+    state: PaymentProcessingUiState,
+    onEvent: (PaymentProcessingUiEvent) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    androidx.compose.foundation.layout.FlowRow(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 4.dp, vertical = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        AppButton(
+            onClick = {
+                onEvent(
+                    PaymentProcessingUiEvent.OnAmountChanged(
+                        state.total.filter { it.isDigit() || it == '.' }
+                    )
+                )
+            }
+        ) {
+            Text("Exact")
+        }
+        AppButton(onClick = { onEvent(PaymentProcessingUiEvent.OnAmountChanged("100")) }) {
+            Text("100 KES")
+        }
+        AppButton(onClick = { onEvent(PaymentProcessingUiEvent.OnAmountChanged("200")) }) {
+            Text("200 KES")
+        }
+        AppButton(onClick = { onEvent(PaymentProcessingUiEvent.OnAmountChanged("500")) }) {
+            Text("500 KES")
+        }
+    }
+}
+
 
 @Composable
 private fun SummaryRow(label: String, value: String){

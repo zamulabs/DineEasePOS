@@ -38,20 +38,32 @@ fun TableManagementScreen(
         vm.loadTables()
     }
 
-    // Inject add-table VM for side pane usage and observe its effects
-    val addVm = org.koin.compose.koinInject<com.zamulabs.dineeasepos.ui.table.addtable.AddTableViewModel>()
     val scope = rememberCoroutineScope()
+
+    // Inject add-table VM for side pane usage and observe its effects
+    val addVm =
+        org.koin.compose.koinInject<com.zamulabs.dineeasepos.ui.table.addtable.AddTableViewModel>()
+
     com.zamulabs.dineeasepos.utils.ObserverAsEvent(vm.uiEffect) { effect ->
         when (effect) {
-            is TableManagementUiEffect.ShowSnackBar -> scope.launch { state.snackbarHostState.showSnackbar(effect.message) }
+            is TableManagementUiEffect.ShowSnackBar -> scope.launch {
+                state.snackbarHostState.showSnackbar(
+                    effect.message
+                )
+            }
+
             is TableManagementUiEffect.ShowToast -> {}
             TableManagementUiEffect.NavigateBack -> navController.popBackStack()
         }
     }
+
     com.zamulabs.dineeasepos.utils.ObserverAsEvent(addVm.uiEffect) { effect ->
         when (effect) {
-            is com.zamulabs.dineeasepos.ui.table.addtable.AddTableUiEffect.ShowSnackBar -> scope.launch { state.snackbarHostState.showSnackbar(effect.message) }
-            is com.zamulabs.dineeasepos.ui.table.addtable.AddTableUiEffect.ShowToast -> { }
+            is com.zamulabs.dineeasepos.ui.table.addtable.AddTableUiEffect.ShowSnackBar ->
+                scope.launch { state.snackbarHostState.showSnackbar(effect.message) }
+
+            is com.zamulabs.dineeasepos.ui.table.addtable.AddTableUiEffect.ShowToast -> {}
+
             com.zamulabs.dineeasepos.ui.table.addtable.AddTableUiEffect.NavigateBack -> {
                 // Close side pane and refresh list after successful add
                 vm.updateUiState { copy(showAddTable = false) }
@@ -60,50 +72,58 @@ fun TableManagementScreen(
         }
     }
 
-    // Use SplitScreenScaffold to show main list and a side pane for details or add-table
+    val showSidePane = state.showAddTable || state.selectedTable != null
+
     com.zamulabs.dineeasepos.ui.components.SplitScreenScaffold(
+        modifier = modifier,
         main = {
-            TableManagementScreenContent(state = state, onEvent = { ev ->
-                when (ev) {
-                    is TableManagementUiEvent.OnClickAddTable -> vm.onEvent(ev) // switch to add form in side pane
-                    is TableManagementUiEvent.OnClickViewDetails -> vm.onEvent(ev)
-                    is TableManagementUiEvent.OnSearch -> vm.onEvent(ev)
+            TableManagementScreenContent(
+                state = state,
+                onEvent = { ev ->
+                    when (ev) {
+                        is TableManagementUiEvent.OnClickAddTable -> vm.onEvent(ev)
+                        is TableManagementUiEvent.OnClickViewDetails -> vm.onEvent(ev)
+                        is TableManagementUiEvent.OnSearch -> vm.onEvent(ev)
+                    }
                 }
-            })
+            )
         },
-        side = {
-            // Decide what to show in the side pane
-            val showAdd = state.showAddTable
-            if (showAdd) {
-                val addVm = org.koin.compose.koinInject<com.zamulabs.dineeasepos.ui.table.addtable.AddTableViewModel>()
-                val addState by addVm.uiState.collectAsState()
-                com.zamulabs.dineeasepos.ui.table.addtable.AddTableScreenContent(
-                    state = addState,
-                    onEvent = addVm::onEvent,
-                    onSave = { addVm.onEvent(com.zamulabs.dineeasepos.ui.table.addtable.AddTableUiEvent.OnSave) },
-                    onCancel = { vm.updateUiState { copy(showAddTable = false) } }
-                )
-            } else {
-                // Render scaffolded table details content instead of simple side pane
-                run {
-                    // Build a transient UI state for the details content from selected table
-                    val table = state.selectedTable
-                    val detailsState = if (table == null) com.zamulabs.dineeasepos.ui.table.details.TableDetailsUiState() else com.zamulabs.dineeasepos.ui.table.details.TableDetailsUiState(
-                        tableNumber = table.number,
-                        capacity = table.capacity,
-                    )
-                    com.zamulabs.dineeasepos.ui.table.details.TableDetailsScreenContent(
-                        state = detailsState,
-                        onEvent = { ev ->
-                            when (ev) {
-                                com.zamulabs.dineeasepos.ui.table.details.TableDetailsUiEvent.OnClickCreateOrder -> navController.navigate(Destinations.NewOrder)
-                                com.zamulabs.dineeasepos.ui.table.details.TableDetailsUiEvent.OnClickEditTable -> navController.navigate(Destinations.AddTable)
-                            }
-                        },
-                        onBack = { /* no-op for side pane */ }
-                    )
+        side = if (showSidePane) {
+            {
+                when {
+                    state.showAddTable -> {
+                        val addState by addVm.uiState.collectAsState()
+                        com.zamulabs.dineeasepos.ui.table.addtable.AddTableScreenContent(
+                            state = addState,
+                            onEvent = addVm::onEvent,
+                            onSave = { addVm.onEvent(com.zamulabs.dineeasepos.ui.table.addtable.AddTableUiEvent.OnSave) },
+                            onCancel = { vm.updateUiState { copy(showAddTable = false) } }
+                        )
+                    }
+
+                    state.selectedTable != null -> {
+                        val table = state.selectedTable!!
+                        val detailsState =
+                            com.zamulabs.dineeasepos.ui.table.details.TableDetailsUiState(
+                                tableNumber = table.number,
+                                capacity = table.capacity,
+                            )
+                        com.zamulabs.dineeasepos.ui.table.details.TableDetailsScreenContent(
+                            state = detailsState,
+                            onEvent = { ev ->
+                                when (ev) {
+                                    com.zamulabs.dineeasepos.ui.table.details.TableDetailsUiEvent.OnClickCreateOrder ->
+                                        navController.navigate(Destinations.NewOrder)
+
+                                    com.zamulabs.dineeasepos.ui.table.details.TableDetailsUiEvent.OnClickEditTable ->
+                                        navController.navigate(Destinations.AddTable)
+                                }
+                            },
+                            onBack = { vm.updateUiState { copy(selectedTable = null) } }
+                        )
+                    }
                 }
             }
-        }
+        } else null // 🔑 hide side pane when no selection and not adding
     )
 }

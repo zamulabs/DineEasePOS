@@ -19,146 +19,251 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
+import androidx.compose.ui.input.pointer.pointerMoveFilter
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.splitpane.ExperimentalSplitPaneApi
 import org.jetbrains.compose.splitpane.HorizontalSplitPane
+import org.jetbrains.compose.splitpane.SplitPaneScope
 import org.jetbrains.compose.splitpane.rememberSplitPaneState
 import java.awt.Cursor
 
+/**
+ * Utility: show horizontal resize cursor when hovering the splitter handle.
+ */
 private fun Modifier.cursorForHorizontalResize(): Modifier =
     pointerHoverIcon(PointerIcon(Cursor(Cursor.E_RESIZE_CURSOR)))
 
-/**
- * Reusable 3/4 : 1/4 pane layout using Compose SplitPane.
- * Divider/handle styled to match the provided design.
- */
 @OptIn(ExperimentalSplitPaneApi::class)
 @Composable
 fun PaneLayout(
     modifier: Modifier = Modifier,
-    main: @Composable () -> Unit,
-    side: @Composable () -> Unit,
+    navRail: (@Composable () -> Unit)? = null,
+    mainRatio: Float = 0.6f,
+    sideRatio: Float = 0.25f,
+    extraRatio: Float = 0.15f,
+    minNavRail: Dp = 100.dp,   // ⬅️ resizable nav rail min width
+    minMain: Dp = 240.dp,
+    minSide: Dp = 320.dp,
+    minExtra: Dp = 240.dp,
+    main: (@Composable () -> Unit)? = null,
+    side: (@Composable () -> Unit)? = null,
+    extra: (@Composable () -> Unit)? = null
 ) {
-    // Compute safe bounds for the splitter based on actual available width
-    BoxWithConstraints(modifier.fillMaxSize()) {
-        val density = androidx.compose.ui.platform.LocalDensity.current
-        val minFirst = 240.dp
-        val minSecond = 320.dp
-        val splitterWidth = 8.dp // visible 1dp + handle area ~7dp
+    if (navRail == null) {
+        // fallback to original logic (no rail)
+        BoxWithConstraints(modifier.fillMaxSize()) {
+            when {
+                side == null -> {
+                    PaneBox { main?.invoke() }
+                }
 
-        val totalPx = with(density) { maxWidth.toPx() }
-        val minFirstPx = with(density) { minFirst.toPx() }
-        val minSecondPx = with(density) { minSecond.toPx() }
-        val splitterPx = with(density) { splitterWidth.toPx() }
-        val availablePx = (totalPx - splitterPx).coerceAtLeast(0f)
+                extra == null -> {
+                    val splitState = rememberSplitPaneState(initialPositionPercentage = mainRatio)
+                    HorizontalSplitPane(
+                        modifier = Modifier.fillMaxSize(),
+                        splitPaneState = splitState
+                    ) {
+                        first(minSize = minMain) { PaneBox { main?.invoke() } }
+                        second(minSize = minSide) { PaneBox { side.invoke() } }
+                        styledSplitter()
+                    }
+                }
 
-        val minPerc = if (availablePx > 0f) (minFirstPx / availablePx).coerceIn(0f, 1f) else 0.5f
-        val maxPerc =
-            if (availablePx > 0f) (1f - (minSecondPx / availablePx)).coerceIn(0f, 1f) else 0.5f
-        val desired = 0.75f
-        val invalidRange = minPerc > maxPerc
-        val safeTarget = if (invalidRange) 0.5f else desired.coerceIn(minPerc, maxPerc)
-
-        if (invalidRange) {
-            // Fallback rendering when width is too small for both min panes: avoid SplitPane entirely
-            // Additionally, guard against SplitPane measuring during animations by short-circuiting composition
-            Box(Modifier.fillMaxSize()) { main() }
-            return@BoxWithConstraints
+                else -> {
+                    val splitState1 = rememberSplitPaneState(initialPositionPercentage = mainRatio)
+                    val splitState2 = rememberSplitPaneState(
+                        initialPositionPercentage = sideRatio / (sideRatio + extraRatio)
+                    )
+                    HorizontalSplitPane(
+                        modifier = Modifier.fillMaxSize(),
+                        splitPaneState = splitState1
+                    ) {
+                        first(minSize = minMain) { PaneBox { main?.invoke() } }
+                        second(minSize = minSide + minExtra) {
+                            HorizontalSplitPane(
+                                modifier = Modifier.fillMaxSize(),
+                                splitPaneState = splitState2
+                            ) {
+                                first(minSize = minSide) { PaneBox { side.invoke() } }
+                                second(minSize = minExtra) { PaneBox { extra.invoke() } }
+                                styledSplitter()
+                            }
+                        }
+                        styledSplitter()
+                    }
+                }
+            }
         }
-
-        val splitState = rememberSplitPaneState(initialPositionPercentage = safeTarget)
-
+    } else {
+        // --- Layout WITH NavRail ---
+        val splitStateNav =
+            rememberSplitPaneState(initialPositionPercentage = 0.15f) // rail ~15% by default
         HorizontalSplitPane(
-            modifier = Modifier.fillMaxSize(),
-            splitPaneState = splitState
+            modifier = modifier.fillMaxSize(),
+            splitPaneState = splitStateNav
         ) {
-            // Rounded corners and spacing around both panes
-            val paneRadius = 12.dp
-            val gap = 8.dp
-            first(minSize = minFirst) {
-                androidx.compose.foundation.layout.Box(
-                    Modifier
-                        .fillMaxSize()
-                        .padding(end = gap)
-                        .clip(androidx.compose.foundation.shape.RoundedCornerShape(paneRadius))
-                        .background(Color(0xFF122118))
-                ) { main() }
-            }
-            second(minSize = minSecond) {
-                androidx.compose.foundation.layout.Box(
-                    Modifier
-                        .fillMaxSize()
-                        .padding(start = gap)
-                        .clip(androidx.compose.foundation.shape.RoundedCornerShape(paneRadius))
-                        .background(Color(0xFF122118))
-                ) { side() }
+            // Left: NavRail (resizable)
+            first(minSize = minNavRail) {
+                PaneBox { navRail() }
             }
 
-            splitter {
-                // Visible divider line: 1dp, matches #1B3124 from design
-                visiblePart {
-                    Box(
-                        Modifier
-                            .width(1.dp)
-                            .fillMaxHeight()
-                            .background(Color(0xFF1B3124))
-                    )
-                }
-                // Handle area with resize cursor and subtle overlay
-                handle {
-                    Box(
-                        Modifier
-                            .markAsHandle()
-                            .cursorForHorizontalResize()
-                            .background(SolidColor(Color.Gray), alpha = 0.50f)
-                            .width(splitterWidth - 1.dp)
-                            .fillMaxHeight()
-                    )
+            // Right: normal PaneLayout (main + side + extra)
+            second(minSize = minMain + minSide) {
+                BoxWithConstraints(Modifier.fillMaxSize()) {
+                    when {
+                        side == null -> PaneBox { main?.invoke() }
+                        extra == null -> {
+                            val splitState =
+                                rememberSplitPaneState(initialPositionPercentage = mainRatio)
+                            HorizontalSplitPane(
+                                modifier = Modifier.fillMaxSize(),
+                                splitPaneState = splitState
+                            ) {
+                                first(minSize = minMain) { PaneBox { main?.invoke() } }
+                                second(minSize = minSide) { PaneBox { side.invoke() } }
+                                styledSplitter()
+                            }
+                        }
+
+                        else -> {
+                            val splitState1 =
+                                rememberSplitPaneState(initialPositionPercentage = mainRatio)
+                            val splitState2 = rememberSplitPaneState(
+                                initialPositionPercentage = sideRatio / (sideRatio + extraRatio)
+                            )
+                            HorizontalSplitPane(
+                                modifier = Modifier.fillMaxSize(),
+                                splitPaneState = splitState1
+                            ) {
+                                first(minSize = minMain) { PaneBox { main?.invoke() } }
+                                second(minSize = minSide + minExtra) {
+                                    HorizontalSplitPane(
+                                        modifier = Modifier.fillMaxSize(),
+                                        splitPaneState = splitState2
+                                    ) {
+                                        first(minSize = minSide) { PaneBox { side.invoke() } }
+                                        second(minSize = minExtra) { PaneBox { extra.invoke() } }
+                                        styledSplitter()
+                                    }
+                                }
+                                styledSplitter()
+                            }
+                        }
+                    }
                 }
             }
+
+            styledSplitter()
         }
     }
 }
 
 
 @Composable
+private fun PaneBox(content: @Composable () -> Unit) {
+    val paneRadius = 12.dp
+    Box(
+        Modifier
+            .fillMaxSize()
+            .padding(4.dp)
+            .clip(RoundedCornerShape(paneRadius))
+            .background(Color(0xFF122118))
+    ) { content() }
+}
+
+@OptIn(ExperimentalSplitPaneApi::class, ExperimentalComposeUiApi::class)
+private fun SplitPaneScope.styledSplitter() {
+    splitter {
+        visiblePart {
+            Box(
+                Modifier
+                    .width(1.dp)
+                    .fillMaxHeight()
+                    .background(Color(0xFF1B3124))
+            )
+        }
+        handle {
+            var isHovered by remember { mutableStateOf(false) }
+            Box(
+                Modifier
+                    .markAsHandle()
+                    .cursorForHorizontalResize()
+                    .background(
+                        SolidColor(if (isHovered) Color.LightGray else Color.Gray),
+                        alpha = if (isHovered) 0.7f else 0.5f
+                    )
+                    .width(7.dp)
+                    .fillMaxHeight()
+                    .pointerMoveFilter(
+                        onEnter = { isHovered = true; false },
+                        onExit = { isHovered = false; false }
+                    )
+            )
+        }
+    }
+}
+
+/**
+ * High-level scaffold for desktop apps. This variant accepts pane sizing
+ * parameters and an optional third pane so it can forward them into PaneLayout.
+ *
+ * - mainRatio / sideRatio / extraRatio are fractions (0f..1f). They are normalized
+ *   internally so callers don't need to sum to 1.0 exactly.
+ * - If `extra` is null, PaneLayout renders a two-pane layout.
+ */
+@Composable
 fun SplitScreenScaffold(
     modifier: Modifier = Modifier,
     navRail: (@Composable () -> Unit)? = null,
     topBar: (@Composable () -> Unit)? = null,
-    main: @Composable () -> Unit,
-    side: @Composable (() -> Unit)? = null,
+    bottomBar: (@Composable () -> Unit)? = null,
+    mainRatio: Float = 0.6f,
+    sideRatio: Float = 0.4f,
+    extraRatio: Float = 0f,
+    minMain: Dp = 240.dp,
+    minSide: Dp = 320.dp,
+    minExtra: Dp = 240.dp,
+    minNavRail: Dp = 100.dp,   // ⬅️ resizable nav rail min width
+    main: (@Composable () -> Unit)? = null,
+    side: (@Composable () -> Unit)? = null,
+    extra: (@Composable () -> Unit)? = null,
 ) {
-    Column(modifier.fillMaxSize()) {
-        if (topBar != null) {
-            topBar()
-        }
-        Row(Modifier.weight(1f)) {
-            if (navRail != null) {
-                navRail()
-            }
-            if (side != null) {
-                PaneLayout(
-                    modifier = Modifier.weight(1f),
-                    main = main,
-                    side = side
-                )
-            } else {
-                Box(Modifier.weight(1f)) { main() }
-            }
-        }
+    Column(modifier = modifier.fillMaxSize()) {
+        topBar?.invoke()
+
+        PaneLayout(
+            modifier = Modifier.weight(1f),
+            navRail = navRail,
+            mainRatio = mainRatio,
+            sideRatio = sideRatio,
+            extraRatio = extraRatio,
+            minMain = minMain,
+            minSide = minSide,
+            minExtra = minExtra,
+            minNavRail = minNavRail,
+            main = main,
+            side = side,
+            extra = extra
+        )
+
+        bottomBar?.invoke()
     }
 }

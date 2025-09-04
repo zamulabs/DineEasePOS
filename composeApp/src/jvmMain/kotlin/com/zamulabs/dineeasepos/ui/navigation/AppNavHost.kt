@@ -64,11 +64,12 @@ fun AppNavHost(
 
     val token = settings.getBearerToken().collectAsState(initial = null).value
     val resetRequired = settings.passwordResetRequired().collectAsState(initial = false).value
-    val startDest = when {
-        token.isNullOrBlank() -> Destinations.Login
-        resetRequired -> Destinations.Login
-        else -> Destinations.Dashboard
-    }
+    val startDest =Destinations.Dashboard
+//        when {
+//        token.isNullOrBlank() -> Destinations.Login
+//        resetRequired -> Destinations.Login
+//        else -> Destinations.Dashboard
+//    }
 
 
     NavHost(

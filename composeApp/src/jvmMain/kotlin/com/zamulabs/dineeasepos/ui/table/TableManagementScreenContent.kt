@@ -53,33 +53,53 @@ fun TableManagementScreenContent(
     state: TableManagementUiState,
     onEvent: (TableManagementUiEvent) -> Unit,
     modifier: Modifier = Modifier,
-){
+) {
     AppScaffold(
         snackbarHostState = state.snackbarHostState,
         modifier = modifier,
-        topBar = { AppScreenTopBar(title = "Tables") },
-        contentHorizontalPadding = 24.dp,
-        contentList = {
-            item {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically){
+        topBar = {
+            AppScreenTopBar(
+                title = "Tables",
+                actions = {
                     // Title moved to TopAppBar; keep only actions here
-                    val settings: com.zamulabs.dineeasepos.data.SettingsRepository = org.koin.compose.koinInject()
-                    val role = settings.getUserString(com.zamulabs.dineeasepos.data.PreferenceManager.USER_TYPE).collectAsState(initial = "Admin").value?.trim()?.lowercase()
-                    val devOverride = settings.superAdminDevOverride().collectAsState(initial = true).value
+                    val settings: com.zamulabs.dineeasepos.data.SettingsRepository =
+                        org.koin.compose.koinInject()
+                    val role =
+                        settings.getUserString(com.zamulabs.dineeasepos.data.PreferenceManager.USER_TYPE)
+                            .collectAsState(initial = "Admin").value?.trim()?.lowercase()
+                    val devOverride =
+                        settings.superAdminDevOverride().collectAsState(initial = true).value
                     val canManage = devOverride || role == "admin"
                     if (canManage) {
-                        AppButton(onClick = { onEvent(TableManagementUiEvent.OnClickAddTable) }, colors = ButtonDefaults.buttonColors(containerColor = PrimaryLightColor)){
+                        AppButton(
+                            onClick = { onEvent(TableManagementUiEvent.OnClickAddTable) },
+                            colors = ButtonDefaults.buttonColors(containerColor = PrimaryLightColor)
+                        ) {
                             Text("Add Table")
                         }
                     }
                 }
-            }
-            item { Spacer(Modifier.height(12.dp)) }
+            )
+        },
+        contentHorizontalPadding = 24.dp,
+        contentList = {
             item {
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)){
-                    AssistChip(onClick = {}, label = { Text("All Tables") }, colors = AssistChipDefaults.assistChipColors(containerColor = SecondaryLightColor))
-                    AssistChip(onClick = {}, label = { Text("Available") }, colors = AssistChipDefaults.assistChipColors(containerColor = SecondaryLightColor))
-                    AssistChip(onClick = {}, label = { Text("Occupied") }, colors = AssistChipDefaults.assistChipColors(containerColor = SecondaryLightColor))
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    AssistChip(
+                        onClick = {},
+                        label = { Text("All Tables") },
+                        colors = AssistChipDefaults.assistChipColors(containerColor = SecondaryLightColor)
+                    )
+                    AssistChip(
+                        onClick = {},
+                        label = { Text("Available") },
+                        colors = AssistChipDefaults.assistChipColors(containerColor = SecondaryLightColor)
+                    )
+                    AssistChip(
+                        onClick = {},
+                        label = { Text("Occupied") },
+                        colors = AssistChipDefaults.assistChipColors(containerColor = SecondaryLightColor)
+                    )
                 }
             }
             item { Spacer(Modifier.height(12.dp)) }
@@ -92,16 +112,25 @@ fun TableManagementScreenContent(
                         DataColumn { Text("Actions") },
                     ),
                     paginated = false,
-                ){
+                ) {
                     val items = state.tables
                     items.forEach { table ->
                         row {
                             cell { Text(table.number) }
                             cell {
                                 val bg = Color(0xFF264532)
-                                val textColor = if(table.status==TableStatus.Available) Color.White else Color.White
-                                Row(modifier = Modifier.clip(RoundedCornerShape(24.dp)).background(bg).padding(horizontal = 16.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically){
-                                    Text(if(table.status==TableStatus.Available) "Available" else "Occupied", color = textColor)
+                                val textColor =
+                                    if (table.status == TableStatus.Available) Color.White else Color.White
+                                Row(
+                                    modifier = Modifier.clip(RoundedCornerShape(24.dp))
+                                        .background(bg)
+                                        .padding(horizontal = 16.dp, vertical = 6.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        if (table.status == TableStatus.Available) "Available" else "Occupied",
+                                        color = textColor
+                                    )
                                 }
                             }
                             cell { Text(table.capacity.toString(), color = Color(0xFFA6C7B5)) }
@@ -110,7 +139,13 @@ fun TableManagementScreenContent(
                                     text = "View Orders",
                                     color = Color(0xFF96C5A9),
                                     fontWeight = FontWeight.Bold,
-                                    modifier = Modifier.clickable { onEvent(TableManagementUiEvent.OnClickViewDetails(table.number)) }
+                                    modifier = Modifier.clickable {
+                                        onEvent(
+                                            TableManagementUiEvent.OnClickViewDetails(
+                                                table.number
+                                            )
+                                        )
+                                    }
                                 )
                             }
                         }

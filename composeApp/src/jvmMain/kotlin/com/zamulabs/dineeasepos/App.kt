@@ -17,6 +17,7 @@ package com.zamulabs.dineeasepos
 
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -24,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.zamulabs.dineeasepos.ui.components.AppNavigationRailBar
+import com.zamulabs.dineeasepos.ui.components.SplitScreenScaffold
 import com.zamulabs.dineeasepos.ui.navigation.AppNavHost
 import com.zamulabs.dineeasepos.ui.navigation.Destinations
 import com.zamulabs.dineeasepos.ui.navigation.NavRail
@@ -46,16 +48,24 @@ fun App(
             val showNavRail: Boolean =
                 currentRoute in NavRail.entries.map { it.route::class.qualifiedName }
 
-            Row {
-                if (showNavRail) {
-                    AppNavigationRailBar(
+            SplitScreenScaffold(
+                modifier = Modifier.fillMaxSize(),
+                // Customize nav rail size here
+                navRail = if (showNavRail) {
+                    {
+                        AppNavigationRailBar(
+                            navController = navController,
+//                            modifier = Modifier.fillMaxWidth() // this width is controlled by SplitScreenScaffold
+                        )
+                    }
+                } else null,
+                main = {
+                    AppNavHost(
                         navController = navController,
                     )
                 }
-                AppNavHost(
-                    navController = navController,
-                )
-            }
+                // no side/extra panes here — child screens (like OrderManagement) can add them
+            )
         }
     }
 }

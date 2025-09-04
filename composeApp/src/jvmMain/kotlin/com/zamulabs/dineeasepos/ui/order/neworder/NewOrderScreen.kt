@@ -24,6 +24,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.zamulabs.dineeasepos.ui.components.SplitScreenScaffold
+import com.zamulabs.dineeasepos.ui.components.ui.BackBreadcrumb
+import com.zamulabs.dineeasepos.ui.payment.paymentprocessing.PaymentProcessingScreenContent
 import com.zamulabs.dineeasepos.utils.ObserverAsEvent
 import org.koin.compose.koinInject
 
@@ -32,7 +35,7 @@ fun NewOrderScreen(
     navController: NavController,
     modifier: Modifier = Modifier,
     viewModel: NewOrderViewModel = koinInject<NewOrderViewModel>(),
-){
+) {
     val state by viewModel.uiState.collectAsState()
 
     LaunchedEffect(viewModel) {
@@ -44,50 +47,80 @@ fun NewOrderScreen(
             is NewOrderUiEffect.ShowSnackBar -> {
                 // ScreenContent owns the SnackbarHostState; triggering via state
             }
+
             NewOrderUiEffect.NavigateBack -> navController.popBackStack()
         }
     }
 
     // Inside New Order, we show a split: main = NewOrder; side = Payment Processing
-    val payVm: com.zamulabs.dineeasepos.ui.payment.paymentprocessing.PaymentProcessingViewModel = org.koin.compose.koinInject()
+    val payVm: com.zamulabs.dineeasepos.ui.payment.paymentprocessing.PaymentProcessingViewModel =
+        org.koin.compose.koinInject()
     val payState by payVm.uiState.collectAsState()
-    var showPayment by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
+    var showPayment by androidx.compose.runtime.remember {
+        androidx.compose.runtime.mutableStateOf(
+            false
+        )
+    }
 
     com.zamulabs.dineeasepos.utils.ObserverAsEvent(payVm.uiEffect) { effect ->
         when (effect) {
             is com.zamulabs.dineeasepos.ui.payment.paymentprocessing.PaymentProcessingUiEffect.ShowSnackBar -> {
                 // SnackbarHost is inside PaymentProcessing content; skipping here
             }
+
             is com.zamulabs.dineeasepos.ui.payment.paymentprocessing.PaymentProcessingUiEffect.NavigateToReceipt -> {
                 // Navigate to Receipt screen on completion from side pane context
                 com.zamulabs.dineeasepos.ui.navigation.Destinations.Receipt.let { dest ->
                     navController.navigate(dest)
                 }
             }
+
             com.zamulabs.dineeasepos.ui.payment.paymentprocessing.PaymentProcessingUiEffect.NavigateBack -> {
                 showPayment = false
             }
         }
     }
 
-    com.zamulabs.dineeasepos.ui.components.SplitScreenScaffold(
+    SplitScreenScaffold(
+        mainRatio = 0.45f,
+        sideRatio = 0.1f,
+        extraRatio = 0.45f,
+        topBar = {
+            BackBreadcrumb(
+                parentLabel = "Orders",
+                currentLabel = "New Order",
+                onBack = {
+                    navController.popBackStack()
+                },
+            )
+        },
         main = {
-            NewOrderScreenContent(
+            OrderMenuPane(
                 state = state,
                 onEvent = viewModel::onEvent,
-                onPlaceOrder = {
-                    // Push current order totals into payment VM before opening pane
-                    val orderId = "#" + (state.selectedTable.ifBlank { "Takeaway" })
-                    payVm.setOrderTotals(orderId = orderId, subtotal = state.subtotal, tax = state.tax, total = state.total)
-                    showPayment = true
-                },
-                onBack = { navController.popBackStack() },
-                modifier = modifier
             )
         },
         side = {
+            OrderSummaryPane(
+                state = state,
+                onNotesChanged = { viewModel.onEvent(NewOrderUiEvent.OnNotesChanged(it)) },
+                onPlaceOrder = {
+                    // Push current order totals into payment VM before opening pane
+                    val orderId = "#" + (state.selectedTable.ifBlank { "Takeaway" })
+                    payVm.setOrderTotals(
+                        orderId = orderId,
+                        subtotal = state.subtotal,
+                        tax = state.tax,
+                        total = state.total
+                    )
+                    showPayment = true
+                },
+                onEvent = viewModel::onEvent
+            )
+        },
+        extra = {
             if (showPayment) {
-                com.zamulabs.dineeasepos.ui.payment.paymentprocessing.PaymentProcessingScreenContent(
+                PaymentProcessingScreenContent(
                     state = payState,
                     onEvent = payVm::onEvent,
                     onBack = { showPayment = false }
