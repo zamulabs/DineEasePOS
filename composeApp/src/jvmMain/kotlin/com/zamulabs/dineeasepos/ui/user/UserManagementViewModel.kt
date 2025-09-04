@@ -29,6 +29,7 @@ import kotlinx.coroutines.launch
 class UserManagementViewModel(
     private val repository: DineEaseRepository,
 ) : ViewModel() {
+    private val settings: com.zamulabs.dineeasepos.data.SettingsRepository = org.koin.java.KoinJavaComponent.get(com.zamulabs.dineeasepos.data.SettingsRepository::class.java)
     private val _uiState = MutableStateFlow(UserManagementUiState())
     val uiState = _uiState.asStateFlow()
 
@@ -56,6 +57,21 @@ class UserManagementViewModel(
                     val u = list[event.index]
                     list[event.index] = u.copy(active = !u.active)
                     copy(users = list)
+                }
+            }
+            is UserManagementUiEvent.OnResetPassword -> {
+                val u = _uiState.value.users.getOrNull(event.index)
+                if (u != null) {
+                    viewModelScope.launch {
+                        when (val result = repository.resetPasswordAdmin(userId = u.name)) {
+                            is NetworkResult.Error -> _uiEffect.trySend(UserManagementUiEffect.ShowSnackBar(result.errorMessage ?: "Reset failed"))
+                            is NetworkResult.Success -> {
+                                // Mark that next login should force password reset
+                                settings.setPasswordResetRequired(true)
+                                _uiEffect.trySend(UserManagementUiEffect.ShowToast(result.data ?: "Temp password generated"))
+                            }
+                        }
+                    }
                 }
             }
         }

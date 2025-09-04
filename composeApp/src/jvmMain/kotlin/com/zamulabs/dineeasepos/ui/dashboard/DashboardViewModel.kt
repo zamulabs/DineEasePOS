@@ -52,7 +52,7 @@ class DashboardViewModel(
             val ordersResult = repository.getOrders()
             val paymentsResult = repository.getPayments()
 
-            var totalSalesToday = "$0.00"
+            var totalSalesToday = "KES 0.00"
             var ordersProcessed = "0"
             var pendingOrders = "0"
             var cashVsOnline = "0% / 0%"
@@ -85,7 +85,7 @@ class DashboardViewModel(
                     // Sum amounts
                     val amounts = payments.mapNotNull { it.amount.toCurrencyValueOrNull() }
                     val total = amounts.sum()
-                    totalSalesToday = "$" + String.format("%.2f", total)
+                    totalSalesToday = "KES " + String.format("%.2f", total)
 
                     // Compute cash vs online split
                     val cashTotal = payments.filter { it.method.contains("cash", ignoreCase = true) }
@@ -100,6 +100,12 @@ class DashboardViewModel(
                 }
             }
 
+            // Load stock movements summary (morning prep in, sales out, remaining)
+            val stock: List<StockSummaryRow> = when (val stockRes = repository.getStockMovements()) {
+                is com.zamulabs.dineeasepos.utils.NetworkResult.Success -> stockRes.data.orEmpty()
+                is com.zamulabs.dineeasepos.utils.NetworkResult.Error -> emptyList()
+            }
+
             _uiState.update {
                 it.copy(
                     isLoadingDashboard = false,
@@ -109,6 +115,7 @@ class DashboardViewModel(
                     pendingOrders = pendingOrders,
                     cashVsOnline = cashVsOnline,
                     recentOrders = recentOrders.ifEmpty { it.recentOrders },
+                    stockSummary = stock.ifEmpty { it.stockSummary },
                 )
             }
 

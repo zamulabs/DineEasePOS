@@ -103,8 +103,63 @@ fun ReportsScreenContent(
                 }
             }
             item {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End){
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically){
+                    AppButton(onClick = { onEvent(ReportsUiEvent.OnPrint) }){ Text("Print") }
+                    Spacer(Modifier.width(8.dp))
                     AppButton(onClick = { onEvent(ReportsUiEvent.OnExport) }){ Text("Export Report") }
+                }
+            }
+
+            // Item Performance: Combinations report
+            if (state.selectedTab == ReportsTab.ItemPerformance) {
+                item { Spacer(Modifier.height(16.dp)) }
+                item { HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant) }
+                item { Text("Item Combinations", style = MaterialTheme.typography.titleLarge) }
+                item {
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)){
+                        AppTextField(
+                            value = state.fromIso,
+                            onValueChange = { v -> onEvent(ReportsUiEvent.OnCombinationsRangeChanged(v, state.toIso, state.limit)) },
+                            modifier = Modifier.width(180.dp),
+                            singleLine = true,
+                            placeholder = { Text("From (YYYY-MM-DD)") }
+                        )
+                        AppTextField(
+                            value = state.toIso,
+                            onValueChange = { v -> onEvent(ReportsUiEvent.OnCombinationsRangeChanged(state.fromIso, v, state.limit)) },
+                            modifier = Modifier.width(180.dp),
+                            singleLine = true,
+                            placeholder = { Text("To (YYYY-MM-DD)") }
+                        )
+                        AppTextField(
+                            value = state.limit.toString(),
+                            onValueChange = { v ->
+                                val n = v.toIntOrNull() ?: state.limit
+                                onEvent(ReportsUiEvent.OnCombinationsRangeChanged(state.fromIso, state.toIso, n))
+                            },
+                            modifier = Modifier.width(120.dp),
+                            singleLine = true,
+                            placeholder = { Text("Limit") }
+                        )
+                        AppButton(onClick = { onEvent(ReportsUiEvent.OnCombinationsRangeChanged(state.fromIso, state.toIso, state.limit)) }){ Text("Load") }
+                    }
+                }
+                item {
+                    AppDataTable(
+                        columns = listOf(
+                            DataColumn { Text("Item A") },
+                            DataColumn { Text("Item B") },
+                            DataColumn { Text("Count") },
+                        ),
+                    ){
+                        state.combinations.forEach { row ->
+                            row {
+                                cell { Text(row.itemAName, color = MaterialTheme.colorScheme.outline) }
+                                cell { Text(row.itemBName, color = MaterialTheme.colorScheme.outline) }
+                                cell { Text(row.count.toString(), color = MaterialTheme.colorScheme.outline) }
+                            }
+                        }
+                    }
                 }
             }
         }

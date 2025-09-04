@@ -50,6 +50,21 @@ class PaymentProcessingViewModel(
     }
 
     private fun processPayment() {
+        // Validate inputs before processing
+        val current = _uiState.value
+        val total = current.total.replace(Regex("[^\\d.]"), "").toDoubleOrNull() ?: 0.0
+        if (current.method == PaymentMethod.Cash) {
+            val received = current.amountReceived.replace(Regex("[^\\d.]"), "").toDoubleOrNull() ?: 0.0
+            if (received < total) {
+                _uiEffect.trySend(PaymentProcessingUiEffect.ShowSnackBar("Insufficient cash tendered"))
+                return
+            }
+        } else if (current.method == PaymentMethod.Online) {
+            if (current.onlineGateway.isBlank()) {
+                _uiEffect.trySend(PaymentProcessingUiEffect.ShowSnackBar("Select an online gateway"))
+                return
+            }
+        }
         viewModelScope.launch {
             val current = _uiState.value
             updateUiState { copy(transactionStatus = if (current.method == PaymentMethod.Online) "Processing" else "Processing") }
@@ -75,9 +90,27 @@ class PaymentProcessingViewModel(
     }
 
     private fun calculateChange(input: String): String {
-        val received = input.toDoubleOrNull() ?: 0.0
-        val total = _uiState.value.total.replace("$", "").toDoubleOrNull() ?: 0.0
+        val received = input.replace(Regex("[^\\d.]"), "").toDoubleOrNull() ?: 0.0
+        val totalString = _uiState.value.total
+        val total = totalString.replace(Regex("[^\\d.]"), "").toDoubleOrNull() ?: 0.0
         val change = (received - total).coerceAtLeast(0.0)
-        return "$" + String.format("%.2f", change)
+        return "KES " + String.format("%.2f", change)
+    }
+
+    // Allow NewOrder screen to push the computed totals and order id into this VM before showing the pane
+    fun setOrderTotals(orderId: String, subtotal: Double, tax: Double, total: Double) {
+        val fmt = { v: Double -> "KES " + String.format("%.2f", v) }
+        updateUiState {
+            copy(
+                orderId = orderId,
+                subtotal = fmt(subtotal),
+                tax = fmt(tax),
+                total = fmt(total),
+                // reset tender and change for a new session
+                amountReceived = "",
+                changeDue = fmt(0.0),
+                transactionStatus = "Pending"
+            )
+        }
     }
 }

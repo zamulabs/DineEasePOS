@@ -37,6 +37,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -58,6 +59,23 @@ fun AppNavigationRailBar(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route?.substringBefore("?")
         ?: Destinations.Dashboard::class.qualifiedName.orEmpty()
+
+    // Read current role from settings; default to Admin if unset
+    val settings: com.zamulabs.dineeasepos.data.SettingsRepository = org.koin.compose.koinInject()
+    val roleFlow = settings.getUserString(com.zamulabs.dineeasepos.data.PreferenceManager.USER_TYPE)
+    val roleState = roleFlow.collectAsState(initial = "Admin")
+    val role = roleState.value ?: "Admin"
+    val devOverride = settings.superAdminDevOverride().collectAsState(initial = false).value
+
+    fun filteredNavItems(): List<NavRail> {
+        if (devOverride) return NavRail.entries
+        return when (role.trim().lowercase()) {
+            "admin" -> NavRail.entries
+            "cashier" -> NavRail.entries.filter { it != NavRail.Users }
+            "waiter" -> NavRail.entries.filter { it != NavRail.Payments && it != NavRail.Reports && it != NavRail.Users }
+            else -> NavRail.entries
+        }
+    }
 
     NavigationRail(
         modifier = modifier.fillMaxWidth(.2f),
@@ -95,7 +113,7 @@ fun AppNavigationRailBar(
                     .align(Alignment.TopStart),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                items(NavRail.entries) { navigationItem ->
+                items(filteredNavItems()) { navigationItem ->
                     val isSelected by remember(currentRoute) {
                         derivedStateOf { currentRoute == navigationItem.route::class.qualifiedName }
                     }

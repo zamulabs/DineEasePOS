@@ -62,10 +62,14 @@ sealed interface MenuManagementUiEvent {
          val itemName: String,
      ) : MenuManagementUiEvent
 
+     data class OnDelete(
+         val itemName: String,
+     ) : MenuManagementUiEvent
+
      data class OnClickViewDetails(
          val itemName: String,
      ) : MenuManagementUiEvent
- }
+  }
 
 sealed class MenuManagementUiEffect {
     data class ShowToast(

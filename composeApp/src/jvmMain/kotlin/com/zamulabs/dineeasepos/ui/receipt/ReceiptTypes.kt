@@ -27,15 +27,43 @@ data class ReceiptListItem(
 )
 
 @Immutable
-data class ReceiptUiState(
-    val items: List<ReceiptListItem> = emptyList(),
-    val search: String = "",
-    val isLoading: Boolean = false,
-    val error: String? = null,
-    val snackbarHostState: androidx.compose.material3.SnackbarHostState = androidx.compose.material3.SnackbarHostState(),
-)
-
-sealed interface ReceiptUiEvent {
-    data class OnSearchChanged(val value: String) : ReceiptUiEvent
-    data object OnExport : ReceiptUiEvent
-}
+ data class ReceiptUiState(
+     val items: List<ReceiptListItem> = emptyList(),
+     val search: String = "",
+     val isLoading: Boolean = false,
+     val error: String? = null,
+     val detail: ReceiptDetail? = null,
+     val snackbarHostState: androidx.compose.material3.SnackbarHostState = androidx.compose.material3.SnackbarHostState(),
+ )
+ 
+ @Immutable
+ data class ReceiptDetail(
+     val orderId: String,
+     val restaurantName: String,
+     val address: String,
+     val phone: String,
+     val orderDate: String,
+     val orderTime: String,
+     val orderType: String,
+     val items: List<ReceiptDetailItem>,
+     val subtotal: String,
+     val tax: String,
+     val total: String,
+     val paymentMethod: String,
+ )
+ 
+ @Immutable
+ data class ReceiptDetailItem(
+     val item: String,
+     val quantity: Int,
+     val price: String,
+     val total: String,
+ )
+ 
+ sealed interface ReceiptUiEvent {
+     data class OnSearchChanged(val value: String) : ReceiptUiEvent
+     data object OnExport : ReceiptUiEvent
+     data class OnReprint(val orderId: String) : ReceiptUiEvent
+     data object OnDismissDetail : ReceiptUiEvent
+     data object OnPrint : ReceiptUiEvent
+ }

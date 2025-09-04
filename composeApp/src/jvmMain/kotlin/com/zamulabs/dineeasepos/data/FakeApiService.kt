@@ -79,6 +79,21 @@ class FakeApiService(
         OrderResponseDto(id = "O-1003", table = "3", status = "open", total = 25.75, time = "10:30 AM"),
     )
 
+    // Simple in-memory stock: item name -> available qty
+    private val stock = mutableMapOf(
+        "Margherita Pizza" to 10,
+        "Pepperoni Pizza" to 8,
+        "Caesar Salad" to 20,
+        "Mushroom Soup" to 15,
+    )
+    // Morning prep baseline by item for current day (string quantities for simplicity)
+    private var morningPrep: MutableMap<String, Double> = mutableMapOf(
+        "Margherita Pizza" to 10.0,
+        "Pepperoni Pizza" to 8.0,
+        "Caesar Salad" to 20.0,
+        "Mushroom Soup" to 15.0,
+    )
+
     private fun nowDateTime(): Pair<String, String> {
         val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
         val date = "%04d-%02d-%02d".format(now.year, now.monthNumber, now.dayOfMonth)
@@ -97,6 +112,27 @@ class FakeApiService(
         )
         menuItems.add(0, dto)
         return dto
+    }
+
+    override suspend fun updateMenuItem(request: CreateMenuItemRequestDto): MenuResponseDto {
+        val idx = menuItems.indexOfFirst { it.name.equals(request.name, ignoreCase = true) }
+        val dto = MenuResponseDto(
+            name = request.name,
+            category = request.category,
+            price = "%.2f".format(request.price),
+            active = request.active,
+        )
+        if (idx >= 0) {
+            menuItems[idx] = dto
+        } else {
+            menuItems.add(0, dto)
+        }
+        return dto
+    }
+
+    override suspend fun deleteMenuItem(name: String): String {
+        val removed = menuItems.removeIf { it.name.equals(name, ignoreCase = true) }
+        return if (removed) "Deleted" else "Not found"
     }
 
     override suspend fun fetchTables(): List<TableResponseDto> = tables.toList()
@@ -177,5 +213,44 @@ class FakeApiService(
 
     override suspend fun resetPassword(request: ResetPasswordRequestDto): MessageResponseDto {
         return MessageResponseDto(message = "Password reset successful for ${'$'}{request.email}")
+    }
+
+    // Stock mocked endpoints backed by 'stock' map
+    override suspend fun checkStock(itemName: String, requestedQty: Int): Boolean {
+        val available = stock[itemName] ?: 0
+        return requestedQty <= available
+    }
+
+    override suspend fun adjustStock(itemName: String, delta: Int): Int {
+        val current = stock[itemName] ?: 0
+        val next = (current + delta).coerceAtLeast(0)
+        stock[itemName] = next
+        return next
+    }
+
+    override suspend fun recordMorningPrep(items: List<Pair<String, Double>>): String {
+        // Set baseline for the day; also set current stock quantities to these values
+        morningPrep.clear()
+        items.forEach { (name, qty) -> morningPrep[name] = qty }
+        // Update stock integers from double quantities
+        stock.clear()
+        items.forEach { (name, qty) -> stock[name] = kotlin.math.max(0, qty.toInt()) }
+        return "Prep recorded"
+    }
+
+    override suspend fun fetchStockMovements(): List<com.zamulabs.dineeasepos.data.dto.StockMovementDto> {
+        // Merge keys from both maps
+        val keys = (morningPrep.keys + stock.keys).toSet()
+        return keys.map { name ->
+            val prepared = morningPrep[name] ?: 0.0
+            val remaining = stock[name]?.toDouble() ?: 0.0
+            val sold = (prepared - remaining).coerceAtLeast(0.0)
+            com.zamulabs.dineeasepos.data.dto.StockMovementDto(
+                item = name,
+                prepared = if (prepared % 1.0 == 0.0) prepared.toInt().toString() else String.format("%.1f", prepared),
+                sold = if (sold % 1.0 == 0.0) sold.toInt().toString() else String.format("%.1f", sold),
+                remaining = if (remaining % 1.0 == 0.0) remaining.toInt().toString() else String.format("%.1f", remaining),
+            )
+        }
     }
 }

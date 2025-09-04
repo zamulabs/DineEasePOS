@@ -25,7 +25,7 @@ import androidx.compose.runtime.Immutable
      val password: String = "",
      val confirmPassword: String = "",
      val isActive: Boolean = true,
-     val roles: List<String> = listOf("Select role", "Admin", "Manager", "Waiter", "Chef"),
+     val roles: List<String> = listOf("Cashier", "Waiter"),
  )
 
  sealed interface AddUserUiEvent {
@@ -61,5 +61,6 @@ import androidx.compose.runtime.Immutable
  sealed class AddUserUiEffect {
      data class ShowToast(val message: String) : AddUserUiEffect()
      data class ShowSnackBar(val message: String) : AddUserUiEffect()
+     data class ShowCredentials(val email: String, val tempPassword: String) : AddUserUiEffect()
      data object NavigateBack : AddUserUiEffect()
  }

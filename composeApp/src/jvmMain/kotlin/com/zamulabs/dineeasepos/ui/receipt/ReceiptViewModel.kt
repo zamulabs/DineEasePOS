@@ -41,6 +41,27 @@ class ReceiptViewModel(
         when (event) {
             is ReceiptUiEvent.OnSearchChanged -> updateUiState { copy(search = event.value) }
             ReceiptUiEvent.OnExport -> { /* TODO: export receipts */ }
+            is ReceiptUiEvent.OnReprint -> loadReceiptDetail(event.orderId)
+            ReceiptUiEvent.OnDismissDetail -> updateUiState { copy(detail = null) }
+            ReceiptUiEvent.OnPrint -> {
+                viewModelScope.launch { _uiEffect.trySend(ReceiptUiEffect.ShowSnackBar("Printed")) }
+            }
+        }
+    }
+
+    fun loadReceiptDetail(orderId: String) {
+        viewModelScope.launch {
+            when (val result = repository.getReceipt(orderId)) {
+                is com.zamulabs.dineeasepos.utils.NetworkResult.Error -> {
+                    _uiEffect.trySend(ReceiptUiEffect.ShowSnackBar(result.errorMessage ?: "Failed to load receipt"))
+                }
+                is com.zamulabs.dineeasepos.utils.NetworkResult.Success -> {
+                    val s = result.data
+                    if (s != null) {
+                        updateUiState { copy(detail = s.detail ?: detail) }
+                    }
+                }
+            }
         }
     }
 

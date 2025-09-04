@@ -18,6 +18,8 @@ package com.zamulabs.dineeasepos.ui.user
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import com.zamulabs.dineeasepos.ui.user.UserManagementUiEvent.*
+import com.zamulabs.dineeasepos.ui.user.adduser.AddUserUiEffect
 import com.zamulabs.dineeasepos.utils.ObserverAsEvent
 import org.koin.compose.koinInject
 
@@ -43,15 +45,17 @@ fun UserManagementScreen(
     val addVm = org.koin.compose.koinInject<com.zamulabs.dineeasepos.ui.user.adduser.AddUserViewModel>()
     ObserverAsEvent(flow = addVm.uiEffect) { effect ->
         when (effect) {
-            is com.zamulabs.dineeasepos.ui.user.adduser.AddUserUiEffect.ShowSnackBar -> {}
-            is com.zamulabs.dineeasepos.ui.user.adduser.AddUserUiEffect.ShowToast -> {}
-            com.zamulabs.dineeasepos.ui.user.adduser.AddUserUiEffect.NavigateBack -> {
+            is AddUserUiEffect.ShowSnackBar -> {}
+            is AddUserUiEffect.ShowToast -> {}
+            AddUserUiEffect.NavigateBack -> {
                 // Close add pane and refresh users
-                viewModel.onEvent(UserManagementUiEvent.OnEdit(index = -1))
+                viewModel.onEvent(OnEdit(index = -1))
                 // Reset: set no selection and hide add
                 // simpler: update state directly via loadUsers; selection will be null, showAddUser should already be false
                 viewModel.loadUsers()
             }
+
+            is AddUserUiEffect.ShowCredentials -> {}
         }
     }
 

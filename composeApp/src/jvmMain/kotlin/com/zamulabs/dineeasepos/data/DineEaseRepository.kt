@@ -32,6 +32,18 @@ interface DineEaseRepository {
         ingredients: String?,
     ): NetworkResult<MenuItem>
 
+    suspend fun updateMenuItem(
+        name: String,
+        description: String?,
+        price: Double,
+        category: String,
+        active: Boolean,
+        prepTimeMinutes: Int?,
+        ingredients: String?,
+    ): NetworkResult<MenuItem>
+
+    suspend fun deleteMenuItem(name: String): NetworkResult<String>
+
     suspend fun getOrders(): NetworkResult<List<Order>>
     suspend fun getTables(): NetworkResult<List<com.zamulabs.dineeasepos.ui.table.DiningTable>>
     suspend fun getPayments(): NetworkResult<List<PaymentItem>>
@@ -71,4 +83,32 @@ interface DineEaseRepository {
     suspend fun login(email: String, password: String): NetworkResult<String>
     suspend fun forgotPassword(email: String): NetworkResult<String>
     suspend fun resetPassword(email: String, code: String, newPassword: String): NetworkResult<String>
+
+    // Extended APIs (stubs for end-to-end wiring)
+    suspend fun placeCashSaleAndPay(
+        lines: List<Pair<String, Double>>, // itemId to qty
+        tendered: Double,
+    ): NetworkResult<String>
+
+    suspend fun generateCombinationsReport(
+        fromIso: String,
+        toIso: String,
+        limit: Int = 50,
+    ): NetworkResult<List<com.zamulabs.dineeasepos.ui.reports.CombinationRow>>
+
+    suspend fun createUserAdmin(
+        name: String,
+        email: String,
+        role: String,
+    ): NetworkResult<String>
+
+    suspend fun resetPasswordAdmin(userId: String): NetworkResult<String>
+    suspend fun changePassword(oldPassword: String, newPassword: String): NetworkResult<String>
+
+    suspend fun recordMorningPrep(items: List<Pair<String, Double>>): NetworkResult<String>
+    suspend fun getStockMovements(): NetworkResult<List<com.zamulabs.dineeasepos.ui.dashboard.StockSummaryRow>>
+
+    // Stock ops (mocked)
+    suspend fun checkStock(itemName: String, requestedQty: Int): NetworkResult<Boolean>
+    suspend fun adjustStock(itemName: String, delta: Int): NetworkResult<Int>
 }

@@ -97,12 +97,14 @@ fun NewOrderScreenContent(
                             Spacer(Modifier.height(8.dp))
                             Text(item.title, color = Color.White, style = MaterialTheme.typography.titleMedium)
                             Text(item.description, color = Color(0xFF96C5A9), style = MaterialTheme.typography.bodySmall)
+                            Spacer(Modifier.height(8.dp))
+                            AppButton(onClick = { onEvent(NewOrderUiEvent.OnAddToCart(item.title)) }, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF38E07B))){ Text("Add", color = Color(0xFF122118)) }
                         }
                     }
                 }
             }
             Spacer(Modifier.width(24.dp))
-            OrderSummary(state = state, onNotesChanged = { onEvent(NewOrderUiEvent.OnNotesChanged(it)) }, onPlaceOrder = onPlaceOrder)
+            OrderSummary(state = state, onNotesChanged = { onEvent(NewOrderUiEvent.OnNotesChanged(it)) }, onPlaceOrder = onPlaceOrder, onEvent = onEvent)
         }
     }
 )
@@ -153,7 +155,7 @@ private fun CategoryTabs(state: NewOrderUiState, onSelected: (Int)->Unit){
 }
 
 @Composable
-private fun OrderSummary(state: NewOrderUiState, onNotesChanged: (String)->Unit, onPlaceOrder: ()->Unit){
+private fun OrderSummary(state: NewOrderUiState, onNotesChanged: (String)->Unit, onPlaceOrder: ()->Unit, onEvent: (NewOrderUiEvent)->Unit){
     Column(Modifier.width(360.dp)){
         Text("Table", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold))
         Spacer(Modifier.height(8.dp))
@@ -162,16 +164,21 @@ private fun OrderSummary(state: NewOrderUiState, onNotesChanged: (String)->Unit,
             label = "",
             selected = state.selectedTable,
             items = state.tables,
-            onSelected = { /* table change handled on main row already; keep readonly here */ },
+            onSelected = { onNotesChanged("") },
             modifier = Modifier.fillMaxWidth(),
         )
         Spacer(Modifier.height(12.dp))
         Text("Order Cart", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold))
         Spacer(Modifier.height(8.dp))
         state.cart.forEach { item ->
-            Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), horizontalArrangement = Arrangement.SpaceBetween){
+            Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically){
                 Column{ Text(item.title, color = Color.White); Text("Quantity: ${item.quantity}", color = Color(0xFF96C5A9), style = MaterialTheme.typography.bodySmall) }
-                Text("$" + String.format("%.2f", item.price), color = Color.White)
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically){
+                    AppButton(onClick = { onEvent(NewOrderUiEvent.OnDecQty(item.title)) }, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF264532))){ Text("-") }
+                    AppButton(onClick = { onEvent(NewOrderUiEvent.OnIncQty(item.title)) }, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF38E07B))){ Text("+") }
+                    AppButton(onClick = { onEvent(NewOrderUiEvent.OnRemoveItem(item.title)) }, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF8B1E1E))){ Text("Remove") }
+                    Text("$" + String.format("%.2f", item.price), color = Color.White)
+                }
             }
         }
         Spacer(Modifier.height(8.dp))
@@ -202,11 +209,4 @@ private fun SummaryRow(label: String, value: Double){
         Text(label, color = Color(0xFF96C5A9), style = MaterialTheme.typography.bodySmall)
         Text("$" + String.format("%.2f", value), color = Color.White, style = MaterialTheme.typography.bodySmall)
     }
-}
-
-sealed interface NewOrderUiEvent{
-    data class OnSearch(val query: String): NewOrderUiEvent
-    data class OnTableSelected(val table: String): NewOrderUiEvent
-    data class OnCategorySelected(val index: Int): NewOrderUiEvent
-    data class OnNotesChanged(val notes: String): NewOrderUiEvent
 }

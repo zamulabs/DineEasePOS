@@ -46,6 +46,7 @@ fun DashboardScreenContent(
     state: DashboardUiState,
     onOrderClick: (String) -> Unit,
     modifier: Modifier = Modifier,
+    showFinancial: Boolean = true,
 ) {
     AppScaffold(
         snackbarHostState = state.snackbarHostState,
@@ -60,11 +61,13 @@ fun DashboardScreenContent(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    MetricCard(
-                        title = "Today's Total Sales",
-                        value = state.totalSalesToday,
-                        modifier = Modifier.weight(1f)
-                    )
+                    if (showFinancial) {
+                        MetricCard(
+                            title = "Today's Total Sales",
+                            value = state.totalSalesToday,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
                     MetricCard(
                         title = "Orders Processed",
                         value = state.ordersProcessed,
@@ -75,11 +78,13 @@ fun DashboardScreenContent(
                         value = state.pendingOrders,
                         modifier = Modifier.weight(1f)
                     )
-                    MetricCard(
-                        title = "Cash vs Online Payment",
-                        value = state.cashVsOnline,
-                        modifier = Modifier.weight(1f)
-                    )
+                    if (showFinancial) {
+                        MetricCard(
+                            title = "Cash vs Online Payment",
+                            value = state.cashVsOnline,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
                 }
             }
             if (state.isLoadingDashboard) {
@@ -87,7 +92,7 @@ fun DashboardScreenContent(
                     Text("Loading dashboard...", color = MaterialTheme.colorScheme.onBackground)
                 }
             }
-            if (state.topSelling.isNotEmpty()) {
+            if (showFinancial && state.topSelling.isNotEmpty()) {
                 item { Spacer(Modifier.height(16.dp)) }
                 item {
                     Text(
@@ -111,6 +116,31 @@ fun DashboardScreenContent(
                                 cell { Text(item.item) }
                                 cell { Text(item.qty, color = MaterialTheme.colorScheme.primary) }
                                 cell { Text(item.revenue, color = MaterialTheme.colorScheme.primary) }
+                            }
+                        }
+                    }
+                }
+            }
+            if (showFinancial && state.stockSummary.isNotEmpty()) {
+                item { Spacer(Modifier.height(16.dp)) }
+                item { Text(text = "Stock Summary", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onBackground) }
+                item { Spacer(Modifier.height(8.dp)) }
+                item {
+                    AppDataTable(
+                        columns = listOf(
+                            DataColumn { Text("Item") },
+                            DataColumn { Text("Prepared") },
+                            DataColumn { Text("Sold") },
+                            DataColumn { Text("Remaining") },
+                        ),
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        state.stockSummary.forEach { row ->
+                            row {
+                                cell { Text(row.item) }
+                                cell { Text(row.prepared, color = MaterialTheme.colorScheme.primary) }
+                                cell { Text(row.sold, color = MaterialTheme.colorScheme.primary) }
+                                cell { Text(row.remaining, color = MaterialTheme.colorScheme.primary) }
                             }
                         }
                     }

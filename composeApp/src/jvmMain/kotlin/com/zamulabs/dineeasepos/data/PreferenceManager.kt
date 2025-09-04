@@ -62,6 +62,9 @@ class PreferenceManager(val settings: Settings) {
         const val NOTIFICATION_ENABLED = "notification_enabled_key"
         const val ON_BOARDING_COMPLETED = "on_boarding_completed_key"
         const val FIREBASE_TOKEN = "firebase_token_key"
+        const val PASSWORD_RESET_REQUIRED = "password_reset_required_key"
+        const val SUPER_ADMIN_DEV_OVERRIDE = "super_admin_dev_override"
+        const val FIRST_LOGIN_EMAIL = "first_login_email_key"
     }
 
     fun clearPreferences() {

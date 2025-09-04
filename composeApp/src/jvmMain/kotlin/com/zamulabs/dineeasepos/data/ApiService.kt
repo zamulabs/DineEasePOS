@@ -38,6 +38,19 @@ open class ApiService(
         }.body()
     }
 
+    // For simplicity, use the same request DTO for update and key by name
+    open suspend fun updateMenuItem(request: com.zamulabs.dineeasepos.data.dto.CreateMenuItemRequestDto): com.zamulabs.dineeasepos.data.dto.MenuResponseDto {
+        return httpClient.post(urlString = "api/menu/update") {
+            setBody(request)
+        }.body()
+    }
+
+    open suspend fun deleteMenuItem(name: String): String {
+        return httpClient.post(urlString = "api/menu/delete") {
+            setBody(mapOf("name" to name))
+        }.body()
+    }
+
     open suspend fun fetchTables(): List<com.zamulabs.dineeasepos.data.dto.TableResponseDto> {
         return httpClient.get(urlString = "api/tables") {
             parameter("all", 1)
@@ -98,6 +111,23 @@ open class ApiService(
 
     open suspend fun resetPassword(request: com.zamulabs.dineeasepos.data.dto.ResetPasswordRequestDto): com.zamulabs.dineeasepos.data.dto.MessageResponseDto {
         return httpClient.post(urlString = "api/auth/reset-password") { setBody(request) }.body()
+    }
+
+    // Stock mocked endpoints
+    open suspend fun checkStock(itemName: String, requestedQty: Int): Boolean {
+        return httpClient.post(urlString = "api/stock/check") { setBody(mapOf("name" to itemName, "qty" to requestedQty)) }.body()
+    }
+    open suspend fun adjustStock(itemName: String, delta: Int): Int {
+        return httpClient.post(urlString = "api/stock/adjust") { setBody(mapOf("name" to itemName, "delta" to delta)) }.body()
+    }
+
+    // Morning prep and stock movements (mock endpoints)
+    open suspend fun recordMorningPrep(items: List<Pair<String, Double>>): String {
+        // In real API, this would POST structured payload; here we delegate in FakeApiService
+        return "OK"
+    }
+    open suspend fun fetchStockMovements(): List<com.zamulabs.dineeasepos.data.dto.StockMovementDto> {
+        return emptyList()
     }
 
     companion object {

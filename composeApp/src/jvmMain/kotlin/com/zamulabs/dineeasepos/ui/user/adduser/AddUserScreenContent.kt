@@ -57,11 +57,6 @@ fun AddUserScreenContent(
             item { LabeledTextField("Email","Enter email", state.email){ onEvent(AddUserUiEvent.OnEmailChanged(it)) } }
             item { LabeledSelect("Role", state.role.ifEmpty { state.roles.first() }, state.roles){ onEvent(AddUserUiEvent.OnRoleChanged(it)) } }
             item {
-                Text("Password", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 20.dp, bottom = 8.dp))
-                LabeledTextField("Password","Enter password", state.password){ onEvent(AddUserUiEvent.OnPasswordChanged(it)) }
-                LabeledTextField("Confirm Password","Confirm password", state.confirmPassword){ onEvent(AddUserUiEvent.OnConfirmPasswordChanged(it)) }
-            }
-            item {
                 Text("Status", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 20.dp, bottom = 8.dp))
                 Row(Modifier.fillMaxWidth().padding(horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically){
                     Text("Active", color = MaterialTheme.colorScheme.onBackground, modifier = Modifier.weight(1f))

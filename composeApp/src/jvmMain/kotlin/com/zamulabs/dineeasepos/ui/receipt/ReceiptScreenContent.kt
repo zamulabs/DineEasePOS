@@ -17,6 +17,7 @@ package com.zamulabs.dineeasepos.ui.receipt
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -68,6 +69,7 @@ fun ReceiptScreenContent(
                         com.seanproctor.datatable.DataColumn { Text("Date") },
                         com.seanproctor.datatable.DataColumn { Text("Method") },
                         com.seanproctor.datatable.DataColumn { Text("Amount") },
+                        com.seanproctor.datatable.DataColumn { Text("Actions") },
                     ),
                     modifier = Modifier.fillMaxWidth()
                 ) {
@@ -78,10 +80,77 @@ fun ReceiptScreenContent(
                             cell { Text(r.date, color = MaterialTheme.colorScheme.outline) }
                             cell { Text(r.method, color = MaterialTheme.colorScheme.outline) }
                             cell { Text(r.amount, color = MaterialTheme.colorScheme.outline) }
+                            cell {
+                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                                    AppButton(onClick = { onEvent(ReceiptUiEvent.OnReprint(r.orderId)) }) { Text("Reprint") }
+                                }
+                            }
                         }
                     }
                 }
             }
+            if (state.detail != null) {
+                item { Spacer(Modifier.height(12.dp)) }
+                item {
+                    ReceiptDetailCard(detail = state.detail, onDismiss = { onEvent(ReceiptUiEvent.OnDismissDetail) }, onPrint = { onEvent(ReceiptUiEvent.OnPrint) })
+                }
+            }
         }
     )
+}
+
+@Composable
+private fun ReceiptDetailCard(detail: ReceiptDetail, onDismiss: () -> Unit, onPrint: () -> Unit) {
+    Column(Modifier.fillMaxWidth().padding(12.dp)) {
+        Text("${'$'}{detail.restaurantName}", style = MaterialTheme.typography.titleLarge)
+        Text(detail.address, color = MaterialTheme.colorScheme.outline)
+        Text(detail.phone, color = MaterialTheme.colorScheme.outline)
+        Spacer(Modifier.height(8.dp))
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Text("Order: ${'$'}{detail.orderId}")
+            Text("${'$'}{detail.orderDate} ${'$'}{detail.orderTime}")
+        }
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Text("Type: ${'$'}{detail.orderType}")
+            Text("Method: ${'$'}{detail.paymentMethod}")
+        }
+        Spacer(Modifier.height(8.dp))
+        AppDataTable(
+            columns = listOf(
+                com.seanproctor.datatable.DataColumn { Text("Item") },
+                com.seanproctor.datatable.DataColumn { Text("Qty") },
+                com.seanproctor.datatable.DataColumn { Text("Price") },
+                com.seanproctor.datatable.DataColumn { Text("Total") },
+            ),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            detail.items.forEach { itx ->
+                row {
+                    cell { Text(itx.item) }
+                    cell { Text(itx.quantity.toString(), color = MaterialTheme.colorScheme.outline) }
+                    cell { Text(itx.price, color = MaterialTheme.colorScheme.outline) }
+                    cell { Text(itx.total, color = MaterialTheme.colorScheme.outline) }
+                }
+            }
+        }
+        Spacer(Modifier.height(8.dp))
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Text("Subtotal", color = MaterialTheme.colorScheme.outline)
+            Text(detail.subtotal)
+        }
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Text("Tax", color = MaterialTheme.colorScheme.outline)
+            Text(detail.tax)
+        }
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Text("Total", color = MaterialTheme.colorScheme.outline)
+            Text(detail.total)
+        }
+        Spacer(Modifier.height(12.dp))
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+            FilledTonalButton(onClick = onDismiss) { Text("Close") }
+            Spacer(Modifier.width(8.dp))
+            AppButton(onClick = onPrint) { Text("Print Receipt") }
+        }
+    }
 }

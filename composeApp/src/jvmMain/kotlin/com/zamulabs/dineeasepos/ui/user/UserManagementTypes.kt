@@ -43,6 +43,10 @@ sealed interface UserManagementUiEvent {
     data class OnEdit(
         val index: Int,
     ) : UserManagementUiEvent
+
+    data class OnResetPassword(
+        val index: Int,
+    ) : UserManagementUiEvent
 }
 
 sealed class UserManagementUiEffect {

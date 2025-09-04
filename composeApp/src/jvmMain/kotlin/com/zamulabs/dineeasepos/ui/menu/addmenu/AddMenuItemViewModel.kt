@@ -27,6 +27,21 @@ import kotlinx.coroutines.launch
 class AddMenuItemViewModel(
     private val repository: com.zamulabs.dineeasepos.data.DineEaseRepository,
 ) : ViewModel() {
+    fun setEditing(item: com.zamulabs.dineeasepos.ui.menu.MenuItem) {
+        _uiState.update {
+            it.copy(
+                isEdit = true,
+                originalName = item.name,
+                name = item.name,
+                description = "",
+                price = item.price.filter { ch -> ch.isDigit() || ch == '.' },
+                category = item.category,
+                status = if (item.active) "Active" else "Inactive",
+                prepTimeMinutes = "",
+                ingredients = "",
+            )
+        }
+    }
     private val _uiState = MutableStateFlow(AddMenuItemUiState())
     val uiState = _uiState.asStateFlow()
 
@@ -71,15 +86,28 @@ class AddMenuItemViewModel(
         update { copy(isSaving = true, errorMessage = null) }
 
         viewModelScope.launch {
-            when (val result = repository.addMenuItem(
-                name = name,
-                description = state.description.ifBlank { null },
-                price = priceDouble,
-                category = category,
-                active = active,
-                prepTimeMinutes = prepMinutes,
-                ingredients = state.ingredients.ifBlank { null },
-            )) {
+            val call = if (state.isEdit) {
+                repository.updateMenuItem(
+                    name = name,
+                    description = state.description.ifBlank { null },
+                    price = priceDouble,
+                    category = category,
+                    active = active,
+                    prepTimeMinutes = prepMinutes,
+                    ingredients = state.ingredients.ifBlank { null },
+                )
+            } else {
+                repository.addMenuItem(
+                    name = name,
+                    description = state.description.ifBlank { null },
+                    price = priceDouble,
+                    category = category,
+                    active = active,
+                    prepTimeMinutes = prepMinutes,
+                    ingredients = state.ingredients.ifBlank { null },
+                )
+            }
+            when (val result = call) {
                 is com.zamulabs.dineeasepos.utils.NetworkResult.Success -> {
                     update { copy(isSaving = false) }
                     _uiEffect.trySend(AddMenuItemUiEffect.ShowSnackBar("Menu item saved"))

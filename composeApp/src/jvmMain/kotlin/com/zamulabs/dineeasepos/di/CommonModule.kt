@@ -44,6 +44,8 @@ fun commonModule(enableNetworkLogs: Boolean) = module {
     /**
      * Multiplatform-Settings
      */
+    single { MultiplatformSettingsWrapper().createSettings() }
+
     single<PreferenceManager> {
         PreferenceManager(settings = get())
     }

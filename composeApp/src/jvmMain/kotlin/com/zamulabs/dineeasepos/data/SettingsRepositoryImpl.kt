@@ -16,6 +16,7 @@
 package com.zamulabs.dineeasepos.data
 
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 
 class SettingsRepositoryImpl(
     private val preferenceManager: PreferenceManager,
@@ -51,6 +52,8 @@ class SettingsRepositoryImpl(
         preferenceManager.setString(key = key, value = value)
     }
 
+    override fun getUserString(key: String) = preferenceManager.getString(key)
+
     override suspend fun clearAll() {
         clearUser()
         preferenceManager.clearPreferences()
@@ -71,6 +74,31 @@ class SettingsRepositoryImpl(
 
     override fun setNotificationEnabled(enabled: Boolean) {
         preferenceManager.setBoolean(key = PreferenceManager.NOTIFICATION_ENABLED, value = enabled)
+    }
+
+    override fun passwordResetRequired(): Flow<Boolean> {
+        return preferenceManager.getBoolean(key = PreferenceManager.PASSWORD_RESET_REQUIRED)
+    }
+
+    override fun setPasswordResetRequired(required: Boolean) {
+        preferenceManager.setBoolean(key = PreferenceManager.PASSWORD_RESET_REQUIRED, value = required)
+    }
+
+    override fun superAdminDevOverride(): Flow<Boolean> {
+        return flowOf(true)
+        // preferenceManager.getBoolean(key = PreferenceManager.SUPER_ADMIN_DEV_OVERRIDE)
+    }
+
+    override fun setSuperAdminDevOverride(enabled: Boolean) {
+        preferenceManager.setBoolean(key = PreferenceManager.SUPER_ADMIN_DEV_OVERRIDE, value = enabled)
+    }
+
+    override fun getFirstLoginEmail(): Flow<String?> {
+        return preferenceManager.getString(key = PreferenceManager.FIRST_LOGIN_EMAIL)
+    }
+
+    override fun setFirstLoginEmail(email: String?) {
+        preferenceManager.setString(key = PreferenceManager.FIRST_LOGIN_EMAIL, value = email)
     }
 
     private fun clearUser() {

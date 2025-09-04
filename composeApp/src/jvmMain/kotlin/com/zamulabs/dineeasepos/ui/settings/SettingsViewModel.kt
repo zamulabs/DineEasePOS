@@ -16,13 +16,17 @@
 package com.zamulabs.dineeasepos.ui.settings
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 
-class SettingsViewModel : ViewModel() {
+class SettingsViewModel(
+    private val repository: com.zamulabs.dineeasepos.data.DineEaseRepository,
+) : ViewModel() {
     private val _uiState = MutableStateFlow(SettingsUiState())
     val uiState = _uiState.asStateFlow()
 
@@ -33,6 +37,33 @@ class SettingsViewModel : ViewModel() {
                 _uiState.update {
                     val list = it.taxRates + TaxRate("New tax", "0%", false)
                     it.copy(taxRates = list)
+                }
+            }
+            is SettingsUiEvent.OnPrepItemChanged -> {
+                _uiState.update {
+                    val rows = it.morningPrepRows.toMutableList()
+                    val idx = event.index.coerceIn(0, rows.size - 1)
+                    rows[idx] = rows[idx].copy(item = event.value)
+                    it.copy(morningPrepRows = rows)
+                }
+            }
+            is SettingsUiEvent.OnPrepQtyChanged -> {
+                _uiState.update {
+                    val rows = it.morningPrepRows.toMutableList()
+                    val idx = event.index.coerceIn(0, rows.size - 1)
+                    rows[idx] = rows[idx].copy(quantity = event.value.filter { ch -> ch.isDigit() || ch == '.' })
+                    it.copy(morningPrepRows = rows)
+                }
+            }
+            SettingsUiEvent.OnAddPrepRow -> {
+                _uiState.update { it.copy(morningPrepRows = it.morningPrepRows + MorningPrepRow()) }
+            }
+            SettingsUiEvent.OnSaveMorningPrep -> {
+                val rows = _uiState.value.morningPrepRows
+                val valid = rows.filter { it.item.isNotBlank() && it.quantity.isNotBlank() }
+                viewModelScope.launch {
+                    val pairs = valid.map { it.item to (it.quantity.toDoubleOrNull() ?: 0.0) }
+                    repository.recordMorningPrep(pairs)
                 }
             }
         }

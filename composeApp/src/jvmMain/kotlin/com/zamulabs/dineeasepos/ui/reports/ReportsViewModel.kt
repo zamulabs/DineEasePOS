@@ -43,24 +43,81 @@ class ReportsViewModel(
 
     fun onEvent(event: ReportsUiEvent) {
         when (event) {
-            is ReportsUiEvent.OnTabSelected -> updateUiState { copy(selectedTab = event.tab) }
+            is ReportsUiEvent.OnTabSelected -> {
+                updateUiState { copy(selectedTab = event.tab) }
+                if (event.tab == ReportsTab.ItemPerformance) {
+                    getCombinationsReport()
+                }
+            }
             is ReportsUiEvent.OnPeriodChanged -> {
                 updateUiState { copy(period = event.period) }
                 getSalesReports()
             }
-            ReportsUiEvent.OnExport -> { /* no-op for now */ }
+            is ReportsUiEvent.OnCombinationsRangeChanged -> {
+                updateUiState { copy(fromIso = event.fromIso, toIso = event.toIso, limit = event.limit) }
+                getCombinationsReport()
+            }
+            ReportsUiEvent.OnExport -> {
+                exportCurrentReport()
+            }
+            ReportsUiEvent.OnPrint -> {
+                viewModelScope.launch { _uiEffect.send(ReportsUiEffect.ShowSnackBar("Sent to printer")) }
+            }
         }
     }
 
     fun getSalesReports() {
         viewModelScope.launch {
             val period = _uiState.value.period
+            fun parseCurrencyToDouble(s: String): Double? = try { s.replace("KES", "").replace("$", "").replace(",", "").trim().toDouble() } catch (_: Throwable) { null }
+            fun formatKes(amount: Double): String = "KES " + String.format("%.2f", amount)
             when (val result = repository.getSalesReports(period)) {
                 is com.zamulabs.dineeasepos.utils.NetworkResult.Error -> {
                     updateUiState { /* keep previous rows */ this }
                 }
                 is com.zamulabs.dineeasepos.utils.NetworkResult.Success -> {
-                    updateUiState { copy(rows = result.data.orEmpty()) }
+                    val rows = result.data.orEmpty()
+                    val totalNet = rows.mapNotNull { r -> parseCurrencyToDouble(r.net) }.sum()
+                    val totalStr = if (rows.isNotEmpty()) formatKes(totalNet) else "KES 0.00"
+                    updateUiState { copy(rows = rows, totalSales = totalStr) }
+                }
+            }
+        }
+    }
+
+    private fun exportCurrentReport() {
+        // Minimal CSV export to clipboard-like feedback: compose CSV string; in real app we would write to file
+        val state = _uiState.value
+        val csv = buildString {
+            appendLine("Report: ${state.selectedTab}")
+            if (state.selectedTab == ReportsTab.Sales) {
+                appendLine("Date,Orders,Gross,Discounts,Net")
+                state.rows.forEach { r ->
+                    appendLine("${r.date},${r.orders},${r.gross},${r.discounts},${r.net}")
+                }
+            } else if (state.selectedTab == ReportsTab.ItemPerformance) {
+                appendLine("Item A,Item B,Count")
+                state.combinations.forEach { c ->
+                    appendLine("${c.itemAName},${c.itemBName},${c.count}")
+                }
+            }
+        }
+        viewModelScope.launch {
+            _uiEffect.send(ReportsUiEffect.ShowSnackBar("Exported report (${csv.lines().size - 1} rows)"))
+        }
+    }
+
+    fun getCombinationsReport() {
+        viewModelScope.launch {
+            val from = _uiState.value.fromIso.ifBlank { "2025-01-01" }
+            val to = _uiState.value.toIso.ifBlank { "2025-12-31" }
+            val lim = _uiState.value.limit
+            when (val result = repository.generateCombinationsReport(from, to, lim)) {
+                is com.zamulabs.dineeasepos.utils.NetworkResult.Error -> {
+                    // keep previous combinations
+                }
+                is com.zamulabs.dineeasepos.utils.NetworkResult.Success -> {
+                    updateUiState { copy(combinations = result.data.orEmpty()) }
                 }
             }
         }

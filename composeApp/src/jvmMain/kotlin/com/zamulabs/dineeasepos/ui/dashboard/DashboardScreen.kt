@@ -51,11 +51,17 @@ fun DashboardScreen(
         }
     }
 
+    val settings: com.zamulabs.dineeasepos.data.SettingsRepository = org.koin.compose.koinInject()
+    val role = settings.getUserString(com.zamulabs.dineeasepos.data.PreferenceManager.USER_TYPE).collectAsState(initial = "Admin").value
+    val devOverride = settings.superAdminDevOverride().collectAsState(initial = false).value
+    val showFinancial = devOverride || role?.trim()?.lowercase() != "waiter"
+
     DashboardScreenContent(
         state = uiState,
         onOrderClick = { /* orderId -> */
             navController.navigate(Destinations.OrderDetails)
         },
         modifier = modifier,
+        showFinancial = showFinancial,
     )
 }

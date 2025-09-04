@@ -21,12 +21,13 @@ import androidx.compose.runtime.Immutable
 // UI state for the Dashboard
 @Immutable
 data class DashboardUiState(
-    val totalSalesToday: String = "$0.00",
+    val totalSalesToday: String = "KES 0.00",
     val ordersProcessed: String = "0",
     val pendingOrders: String = "0",
     val cashVsOnline: String = "0% / 100%",
     val topSelling: List<TopSellingItem> = emptyList(),
     val recentOrders: List<RecentOrder> = emptyList(),
+    val stockSummary: List<StockSummaryRow> = emptyList(),
     val isLoadingDashboard: Boolean = false,
     val errorLoadingDashboard: String? = null,
     val snackbarHostState: SnackbarHostState = SnackbarHostState(),
@@ -54,4 +55,11 @@ data class RecentOrder(
     val customer: String,
     val time: String,
     val total: String,
+)
+
+data class StockSummaryRow(
+    val item: String,
+    val prepared: String,
+    val sold: String,
+    val remaining: String,
 )

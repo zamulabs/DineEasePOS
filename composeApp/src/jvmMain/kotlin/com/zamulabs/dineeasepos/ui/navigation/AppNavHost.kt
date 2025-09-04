@@ -19,6 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
+import androidx.compose.runtime.collectAsState
 import androidx.navigation.toRoute
 import androidx.navigation.compose.composable
 import com.zamulabs.dineeasepos.ui.dashboard.DashboardScreen
@@ -44,10 +45,36 @@ fun AppNavHost(
     navController: NavHostController,
     modifier: Modifier = Modifier,
 ) {
+    // Read role from settings
+    val settings: com.zamulabs.dineeasepos.data.SettingsRepository = org.koin.compose.koinInject()
+    val role = settings.getUserString(com.zamulabs.dineeasepos.data.PreferenceManager.USER_TYPE).collectAsState(initial = "Admin").value?.trim()?.lowercase()
+
+    val devOverride = settings.superAdminDevOverride().collectAsState(initial = false).value
+
+    fun allowed(vararg roles: String): Boolean {
+        if (devOverride) return true
+        val r = role ?: "admin"
+        return roles.any { it.trim().lowercase() == r }
+    }
+
+    @Composable
+    fun AccessDenied() {
+        androidx.compose.material3.Text("Unauthorized")
+    }
+
+    val token = settings.getBearerToken().collectAsState(initial = null).value
+    val resetRequired = settings.passwordResetRequired().collectAsState(initial = false).value
+    val startDest = when {
+        token.isNullOrBlank() -> Destinations.Login
+        resetRequired -> Destinations.Login
+        else -> Destinations.Dashboard
+    }
+
+
     NavHost(
         modifier = modifier,
         navController = navController,
-        startDestination = Destinations.Dashboard,
+        startDestination = startDest,
     ) {
         composable<Destinations.Dashboard> {
             DashboardScreen(
@@ -80,7 +107,11 @@ fun AppNavHost(
         }
 
         composable<Destinations.AddTable> {
-            AddTableScreen(navController = navController)
+            if (allowed("admin")) {
+                AddTableScreen(navController = navController)
+            } else {
+                AccessDenied()
+            }
         }
 
         composable<Destinations.AddMenuItem> {
@@ -92,11 +123,19 @@ fun AppNavHost(
         }
 
         composable<Destinations.Payment> {
-            PaymentsScreen()
+            if (allowed("admin", "cashier")) {
+                PaymentsScreen()
+            } else {
+                AccessDenied()
+            }
         }
 
         composable<Destinations.PaymentProcessing> {
-            PaymentProcessingScreen(navController = navController)
+            if (allowed("admin", "cashier")) {
+                PaymentProcessingScreen(navController = navController)
+            } else {
+                AccessDenied()
+            }
         }
 
         composable<Destinations.OrderDetails> {
@@ -112,19 +151,35 @@ fun AppNavHost(
         }
 
         composable<Destinations.Users> {
-            UserManagementScreen()
+            if (allowed("admin")) {
+                UserManagementScreen()
+            } else {
+                AccessDenied()
+            }
         }
 
         composable<Destinations.AddUser> {
-            AddUserScreen(navController = navController)
+            if (allowed("admin")) {
+                AddUserScreen(navController = navController)
+            } else {
+                AccessDenied()
+            }
         }
 
         composable<Destinations.Reports> {
-            ReportsScreen()
+            if (allowed("admin", "cashier")) {
+                ReportsScreen()
+            } else {
+                AccessDenied()
+            }
         }
 
         composable<Destinations.Receipt> {
-            ReceiptScreen(navController = navController)
+            if (allowed("admin", "cashier")) {
+                ReceiptScreen(navController = navController)
+            } else {
+                AccessDenied()
+            }
         }
     }
 }

@@ -23,11 +23,13 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 
 class LoginViewModel(
     private val repository: com.zamulabs.dineeasepos.data.DineEaseRepository,
 ) : ViewModel() {
+    private val settings: com.zamulabs.dineeasepos.data.SettingsRepository = org.koin.java.KoinJavaComponent.get(com.zamulabs.dineeasepos.data.SettingsRepository::class.java)
     private val _uiState = MutableStateFlow(LoginUiState())
     val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
 
@@ -55,7 +57,9 @@ class LoginViewModel(
             LoginUiEvent.OnSubmitForgot -> submitForgot()
             LoginUiEvent.OnSubmitReset -> submitReset()
 
-            LoginUiEvent.OnSignup -> { /* future: navigate to signup */ }
+            LoginUiEvent.OnSignup -> {
+                viewModelScope.launch { _uiEffect.send(LoginUiEffect.ShowSnackBar("Account creation is restricted. Please ask an admin to create your account.")) }
+            }
         }
     }
 
@@ -74,8 +78,27 @@ class LoginViewModel(
                     _uiEffect.send(LoginUiEffect.ShowSnackBar(result.errorMessage ?: "Login failed"))
                 }
                 is com.zamulabs.dineeasepos.utils.NetworkResult.Success -> {
+                    // Persist token and a mock role for demo: Admin if email contains 'admin', Cashier if contains 'cash', else Waiter
+                    val token = result.data
+                    settings.saveBearerToken(token)
+                    val role = when {
+                        email.contains("admin", ignoreCase = true) -> "Admin"
+                        email.contains("cash", ignoreCase = true) -> "Cashier"
+                        else -> "Waiter"
+                    }
+                    settings.saveUserString(com.zamulabs.dineeasepos.data.PreferenceManager.USER_TYPE, role)
                     updateUiState { copy(loading = false, error = null) }
-                    _uiEffect.send(LoginUiEffect.NavigateToDashboard)
+                    // If a password reset is required (e.g., temp credentials), force reset instead of navigating
+                    val globalReset = settings.passwordResetRequired().firstOrNull() == true
+                    val firstLoginEmail = settings.getFirstLoginEmail().firstOrNull()
+                    val isFirstLoginForThisUser = firstLoginEmail?.equals(email, ignoreCase = true) == true
+                    val mustReset = globalReset || isFirstLoginForThisUser
+                    if (mustReset) {
+                        updateUiState { copy(showResetPassword = true) }
+                        _uiEffect.send(LoginUiEffect.ShowSnackBar("Password reset required. Please set a new password."))
+                    } else {
+                        _uiEffect.send(LoginUiEffect.NavigateToDashboard)
+                    }
                 }
             }
         }
@@ -95,6 +118,8 @@ class LoginViewModel(
                     _uiEffect.send(LoginUiEffect.ShowSnackBar(result.errorMessage ?: "Failed to send reset email"))
                 }
                 is com.zamulabs.dineeasepos.utils.NetworkResult.Success -> {
+                    // Mark that a password reset is required before next login
+                    settings.setPasswordResetRequired(true)
                     updateUiState { copy(loading = false, showForgotPassword = false, showResetPassword = true) }
                     _uiEffect.send(LoginUiEffect.ShowSnackBar(result.data ?: "Reset code sent to your email"))
                 }
@@ -120,6 +145,9 @@ class LoginViewModel(
                     _uiEffect.send(LoginUiEffect.ShowSnackBar(result.errorMessage ?: "Failed to reset password"))
                 }
                 is com.zamulabs.dineeasepos.utils.NetworkResult.Success -> {
+                    // Clear reset requirement and prompt
+                    settings.setPasswordResetRequired(false)
+                    settings.setFirstLoginEmail(null)
                     updateUiState { copy(loading = false, showResetPassword = false, password = "", newPassword = "", confirmPassword = "", resetCode = "") }
                     _uiEffect.send(LoginUiEffect.ShowSnackBar(result.data ?: "Password reset successful. Please login."))
                 }

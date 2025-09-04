@@ -35,6 +35,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -56,6 +57,11 @@ fun MenuManagementScreenContent(
     onEvent: (MenuManagementUiEvent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val settings: com.zamulabs.dineeasepos.data.SettingsRepository = org.koin.compose.koinInject()
+    val role = settings.getUserString(com.zamulabs.dineeasepos.data.PreferenceManager.USER_TYPE).collectAsState(initial = "Admin").value?.trim()?.lowercase()
+    val devOverride = settings.superAdminDevOverride().collectAsState(initial = true).value
+    val canManage = devOverride || role == "admin"
+    var pendingDelete by remember { mutableStateOf<String?>(null) }
     AppScaffold(
         snackbarHostState = state.snackbarHostState,
         modifier = modifier,
@@ -69,11 +75,13 @@ fun MenuManagementScreenContent(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     // Title moved to TopAppBar; keep only actions here
-                    AppButton(
-                        onClick = { onEvent(MenuManagementUiEvent.OnClickAddItem) },
-                        colors = ButtonDefaults.buttonColors(containerColor = PrimaryLightColor)
-                    ) {
-                        Text("Add Item")
+                    if (canManage) {
+                        AppButton(
+                            onClick = { onEvent(MenuManagementUiEvent.OnClickAddItem) },
+                            colors = ButtonDefaults.buttonColors(containerColor = PrimaryLightColor)
+                        ) {
+                            Text("Add Item")
+                        }
                     }
                 }
             }
@@ -149,12 +157,20 @@ fun MenuManagementScreenContent(
                                 }
                             }
                             cell {
-                                TextButton(onClick = { onEvent(MenuManagementUiEvent.OnClickViewDetails(item.name)) }) {
-                                    Text(
-                                        "View Details",
-                                        color = Color(0xFFA6C7B5),
-                                        fontWeight = FontWeight.Bold
-                                    )
+                                Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                                    TextButton(onClick = { onEvent(MenuManagementUiEvent.OnClickViewDetails(item.name)) }) {
+                                        Text(
+                                            "View Details",
+                                            color = Color(0xFFA6C7B5),
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    }
+                                    if (canManage) {
+                                        Text("|", color = Color(0xFFA6C7B5))
+                                        TextButton(onClick = { onEvent(MenuManagementUiEvent.OnEdit(item.name)) }) { Text("Edit", color = Color(0xFFA6C7B5), fontWeight = FontWeight.Bold) }
+                                        Text("|", color = Color(0xFFA6C7B5))
+                                        TextButton(onClick = { pendingDelete = item.name }) { Text("Delete", color = Color(0xFFA6C7B5), fontWeight = FontWeight.Bold) }
+                                    }
                                 }
                             }
                         }
@@ -163,4 +179,18 @@ fun MenuManagementScreenContent(
             }
         }
     )
+
+    pendingDelete?.let { name ->
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { pendingDelete = null },
+            title = { Text("Delete Item") },
+            text = { Text("Are you sure you want to delete '$name'? This action cannot be undone.") },
+            confirmButton = {
+                TextButton(onClick = { onEvent(MenuManagementUiEvent.OnDelete(name)); pendingDelete = null }) { Text("Delete") }
+            },
+            dismissButton = {
+                TextButton(onClick = { pendingDelete = null }) { Text("Cancel") }
+            }
+        )
+    }
 }

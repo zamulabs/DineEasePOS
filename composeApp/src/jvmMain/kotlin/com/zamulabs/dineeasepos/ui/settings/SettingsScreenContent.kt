@@ -89,6 +89,47 @@ fun SettingsScreenContent(
                 item { Spacer(Modifier.height(16.dp)) }
                 item { Button(onClick = { onEvent(SettingsUiEvent.OnAddTaxRate) }, shape = MaterialTheme.shapes.extraLarge){ Text("Add tax rate") } }
             }
+            if(state.activeTab==SettingsTab.System){
+                item { Text("Morning Prep (Start of Day)", style = MaterialTheme.typography.headlineSmall, modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)) }
+                item {
+                    AppDataTable(
+                        columns = listOf(
+                            DataColumn { Text("Item") },
+                            DataColumn { Text("Prepared Qty") },
+                        ),
+                    ){
+                        state.morningPrepRows.forEachIndexed { idx, row ->
+                            row {
+                                cell {
+                                    com.zamulabs.dineeasepos.ui.components.ui.AppTextField(
+                                        value = row.item,
+                                        onValueChange = { onEvent(SettingsUiEvent.OnPrepItemChanged(idx, it)) },
+                                        placeholder = { Text("e.g., Chapati") },
+                                        singleLine = true,
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+                                }
+                                cell {
+                                    com.zamulabs.dineeasepos.ui.components.ui.AppTextField(
+                                        value = row.quantity,
+                                        onValueChange = { onEvent(SettingsUiEvent.OnPrepQtyChanged(idx, it)) },
+                                        placeholder = { Text("e.g., 100") },
+                                        singleLine = true,
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+                item {
+                    Row(Modifier.fillMaxWidth().padding(top = 8.dp),) {
+                        TextButton(onClick = { onEvent(SettingsUiEvent.OnAddPrepRow) }){ Text("Add Row") }
+                        Spacer(Modifier.weight(1f))
+                        Button(onClick = { onEvent(SettingsUiEvent.OnSaveMorningPrep) }, shape = MaterialTheme.shapes.extraLarge){ Text("Save Morning Prep") }
+                    }
+                }
+            }
         }
     )
 }

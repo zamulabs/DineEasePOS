@@ -36,6 +36,11 @@ data class ReportsUiState(
     val totalSales: String = "$0.00",
     val delta: String = "0%",
     val rows: List<SalesRow> = emptyList(),
+    // Item combinations report (ItemPerformance tab)
+    val combinations: List<CombinationRow> = emptyList(),
+    val fromIso: String = "",
+    val toIso: String = "",
+    val limit: Int = 50,
     val snackbarHostState: SnackbarHostState = SnackbarHostState(),
 )
 
@@ -48,7 +53,15 @@ sealed interface ReportsUiEvent {
         val period: String,
     ) : ReportsUiEvent
 
+    // Trigger combinations fetch; if from/to are blank, VM can use sensible defaults
+    data class OnCombinationsRangeChanged(
+        val fromIso: String,
+        val toIso: String,
+        val limit: Int = 50,
+    ) : ReportsUiEvent
+
     data object OnExport : ReportsUiEvent
+    data object OnPrint : ReportsUiEvent
 }
 
 sealed class ReportsUiEffect {

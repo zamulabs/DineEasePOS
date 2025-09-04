@@ -27,6 +27,7 @@ interface SettingsRepository {
     suspend fun saveOnBoardingState(completed: Boolean)
     fun readOnBoardingState(): Flow<Boolean?>
     fun saveUserString(key: String, value: String?)
+    fun getUserString(key: String): Flow<String?>
 
     suspend fun clearAll()
     fun getFirebaseToken(): Flow<String?>
@@ -34,4 +35,16 @@ interface SettingsRepository {
 
     fun notificationEnabled(): Flow<Boolean>
     fun setNotificationEnabled(enabled: Boolean)
+
+    // Auth flags
+    fun passwordResetRequired(): Flow<Boolean>
+    fun setPasswordResetRequired(required: Boolean)
+
+    // Dev-only: Super admin override to unlock all features during development
+    fun superAdminDevOverride(): Flow<Boolean>
+    fun setSuperAdminDevOverride(enabled: Boolean)
+
+    // First-login enforcement for generated credentials
+    fun getFirstLoginEmail(): Flow<String?>
+    fun setFirstLoginEmail(email: String?)
 }

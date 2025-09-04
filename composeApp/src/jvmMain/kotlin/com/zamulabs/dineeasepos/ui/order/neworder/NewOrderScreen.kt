@@ -76,6 +76,9 @@ fun NewOrderScreen(
                 state = state,
                 onEvent = viewModel::onEvent,
                 onPlaceOrder = {
+                    // Push current order totals into payment VM before opening pane
+                    val orderId = "#" + (state.selectedTable.ifBlank { "Takeaway" })
+                    payVm.setOrderTotals(orderId = orderId, subtotal = state.subtotal, tax = state.tax, total = state.total)
                     showPayment = true
                 },
                 onBack = { navController.popBackStack() },

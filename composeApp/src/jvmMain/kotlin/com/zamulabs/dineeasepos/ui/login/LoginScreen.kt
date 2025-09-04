@@ -32,6 +32,15 @@ fun LoginScreen(
     val state = vm.uiState.collectAsState().value
     val scope = rememberCoroutineScope()
 
+    // If a password reset was requested (by forgot or admin), force the reset dialog on login screen
+    val settings: com.zamulabs.dineeasepos.data.SettingsRepository = org.koin.compose.koinInject()
+    val resetRequired = settings.passwordResetRequired().collectAsState(initial = false).value
+    androidx.compose.runtime.LaunchedEffect(resetRequired) {
+        if (resetRequired) {
+            vm.onEvent(LoginUiEvent.OnShowReset)
+        }
+    }
+
     com.zamulabs.dineeasepos.utils.ObserverAsEvent(flow = vm.uiEffect) { effect ->
         when (effect) {
             is LoginUiEffect.ShowSnackBar -> {

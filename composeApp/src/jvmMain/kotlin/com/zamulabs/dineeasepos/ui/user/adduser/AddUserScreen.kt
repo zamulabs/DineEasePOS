@@ -28,11 +28,15 @@ fun AddUserScreen(
     vm: AddUserViewModel = koinInject<AddUserViewModel>()
 ){
     val state by vm.uiState.collectAsState()
+    val credentialsToShow = androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf<Pair<String,String>?>(null) }
 
     com.zamulabs.dineeasepos.utils.ObserverAsEvent(flow = vm.uiEffect) { effect ->
         when (effect) {
             is AddUserUiEffect.ShowSnackBar -> { /* hook up snackbar if needed */ }
             is AddUserUiEffect.ShowToast -> { /* TODO desktop toast */ }
+            is AddUserUiEffect.ShowCredentials -> {
+                credentialsToShow.value = effect.email to effect.tempPassword
+            }
             AddUserUiEffect.NavigateBack -> { navController.popBackStack() }
         }
     }
@@ -42,4 +46,25 @@ fun AddUserScreen(
         onEvent = vm::onEvent,
         modifier = modifier,
     )
+
+    credentialsToShow.value?.let { (email, temp) ->
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { /* block dismiss; force explicit action */ },
+            title = { androidx.compose.material3.Text("Credentials generated") },
+            text = {
+                androidx.compose.foundation.layout.Column {
+                    androidx.compose.material3.Text("Provide these login details to the user. They are shown once.")
+                    androidx.compose.material3.Text("Email: $email")
+                    androidx.compose.material3.Text("Temporary password: $temp")
+                }
+            },
+            confirmButton = {
+                androidx.compose.material3.TextButton(onClick = {
+                    credentialsToShow.value = null
+                    // After acknowledging, navigate back
+                    navController.popBackStack()
+                }) { androidx.compose.material3.Text("Done") }
+            }
+        )
+    }
 }

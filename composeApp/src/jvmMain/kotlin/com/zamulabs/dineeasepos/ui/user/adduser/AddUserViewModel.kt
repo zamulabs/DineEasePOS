@@ -29,6 +29,7 @@ import kotlinx.coroutines.launch
 class AddUserViewModel(
     private val repository: DineEaseRepository,
 ) : ViewModel() {
+    private val settings: com.zamulabs.dineeasepos.data.SettingsRepository = org.koin.java.KoinJavaComponent.get(com.zamulabs.dineeasepos.data.SettingsRepository::class.java)
     private val _uiState = MutableStateFlow(AddUserUiState())
     val uiState = _uiState.asStateFlow()
 
@@ -54,28 +55,25 @@ class AddUserViewModel(
 
     private fun saveUser() {
         val s = uiState.value
-        if (s.name.isBlank() || s.email.isBlank() || s.role.isBlank() || s.password.isBlank()) {
+        if (s.name.isBlank() || s.email.isBlank() || s.role.isBlank()) {
             _uiEffect.trySend(AddUserUiEffect.ShowSnackBar("Please fill all required fields"))
             return
         }
-        if (s.password != s.confirmPassword) {
-            _uiEffect.trySend(AddUserUiEffect.ShowSnackBar("Passwords do not match"))
-            return
-        }
         viewModelScope.launch {
-            when (val result = repository.addUser(
+            when (val result = repository.createUserAdmin(
                 name = s.name,
                 email = s.email,
                 role = s.role,
-                password = s.password,
-                isActive = s.isActive,
             )) {
                 is NetworkResult.Error -> {
                     _uiEffect.trySend(AddUserUiEffect.ShowSnackBar(result.errorMessage ?: "Failed to add user"))
                 }
                 is NetworkResult.Success -> {
-                    _uiEffect.trySend(AddUserUiEffect.ShowToast("User added"))
-                    _uiEffect.trySend(AddUserUiEffect.NavigateBack)
+                    val temp = result.data ?: "Temp password generated"
+                    // Mark this email as requiring first-login password update
+                    settings.setFirstLoginEmail(s.email)
+                    // Show credentials once to admin
+                    _uiEffect.trySend(AddUserUiEffect.ShowCredentials(email = s.email, tempPassword = temp))
                 }
             }
         }

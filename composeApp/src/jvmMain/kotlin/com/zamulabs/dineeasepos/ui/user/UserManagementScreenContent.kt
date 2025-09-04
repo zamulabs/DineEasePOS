@@ -85,6 +85,8 @@ fun UserManagementScreenContent(
                                     TextButton(onClick = { onEvent(UserManagementUiEvent.OnEdit(index)) }){ Text("Edit", color = Color(0xFFA6C7B5), fontWeight = FontWeight.Bold) }
                                     Text("|", color = Color(0xFFA6C7B5))
                                     TextButton(onClick = { onEvent(UserManagementUiEvent.OnToggleActive(index)) }){ Text(if(user.active) "Deactivate" else "Activate", color = Color(0xFFA6C7B5), fontWeight = FontWeight.Bold) }
+                                    Text("|", color = Color(0xFFA6C7B5))
+                                    TextButton(onClick = { onEvent(UserManagementUiEvent.OnResetPassword(index)) }){ Text("Reset Password", color = Color(0xFFA6C7B5), fontWeight = FontWeight.Bold) }
                                 }
                             }
                         }

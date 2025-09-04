@@ -33,6 +33,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -62,8 +63,14 @@ fun TableManagementScreenContent(
             item {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically){
                     // Title moved to TopAppBar; keep only actions here
-                    AppButton(onClick = { onEvent(TableManagementUiEvent.OnClickAddTable) }, colors = ButtonDefaults.buttonColors(containerColor = PrimaryLightColor)){
-                        Text("Add Table")
+                    val settings: com.zamulabs.dineeasepos.data.SettingsRepository = org.koin.compose.koinInject()
+                    val role = settings.getUserString(com.zamulabs.dineeasepos.data.PreferenceManager.USER_TYPE).collectAsState(initial = "Admin").value?.trim()?.lowercase()
+                    val devOverride = settings.superAdminDevOverride().collectAsState(initial = true).value
+                    val canManage = devOverride || role == "admin"
+                    if (canManage) {
+                        AppButton(onClick = { onEvent(TableManagementUiEvent.OnClickAddTable) }, colors = ButtonDefaults.buttonColors(containerColor = PrimaryLightColor)){
+                            Text("Add Table")
+                        }
                     }
                 }
             }

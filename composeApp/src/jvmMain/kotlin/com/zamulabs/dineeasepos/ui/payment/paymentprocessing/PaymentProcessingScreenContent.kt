@@ -77,10 +77,19 @@ fun PaymentProcessingScreenContent(
                 AppTextField(
                     value = state.amountReceived,
                     onValueChange = { onEvent(PaymentProcessingUiEvent.OnAmountChanged(it)) },
-                    placeholder = { Text("Amount Tendered") },
+                    placeholder = { Text("Amount Tendered (KES)") },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
                 )
+            }
+        }
+        // Quick tender buttons per user story
+        item {
+            Row(Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 4.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                AppButton(onClick = { onEvent(PaymentProcessingUiEvent.OnAmountChanged(state.total.filter { it.isDigit() || it == '.' })) }) { Text("Exact") }
+                AppButton(onClick = { onEvent(PaymentProcessingUiEvent.OnAmountChanged("100")) }) { Text("100 KES") }
+                AppButton(onClick = { onEvent(PaymentProcessingUiEvent.OnAmountChanged("200")) }) { Text("200 KES") }
+                AppButton(onClick = { onEvent(PaymentProcessingUiEvent.OnAmountChanged("500")) }) { Text("500 KES") }
             }
         }
         item {
@@ -111,7 +120,13 @@ fun PaymentProcessingScreenContent(
         item { Text("Transaction Status: ${state.transactionStatus}", color = MaterialTheme.colorScheme.outline, modifier = Modifier.padding(horizontal = 4.dp)) }
         item {
             Row(Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 12.dp)){
-                AppButton(onClick = { onEvent(PaymentProcessingUiEvent.OnProcessPayment) }) { Text("Complete Payment") }
+                val total = state.total.filter { it.isDigit() || it == '.' }.toDoubleOrNull() ?: 0.0
+                val received = state.amountReceived.filter { it.isDigit() || it == '.' }.toDoubleOrNull() ?: 0.0
+                val canSubmit = when (state.method) {
+                    PaymentMethod.Cash -> received >= total
+                    PaymentMethod.Online -> state.onlineGateway.isNotBlank()
+                }
+                AppButton(onClick = { onEvent(PaymentProcessingUiEvent.OnProcessPayment) }, enabled = canSubmit) { Text("Complete Payment") }
             }
         }
     }

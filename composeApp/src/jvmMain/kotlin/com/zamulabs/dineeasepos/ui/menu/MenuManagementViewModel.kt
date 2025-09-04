@@ -58,16 +58,51 @@ class MenuManagementViewModel(
             }
 
             is MenuManagementUiEvent.OnToggleActive -> {
-                val updated = uiState.value.items.map { item ->
-                    if (item.name == event.itemName) item.copy(active = !item.active) else item
+                // Call update to toggle active on backend
+                val current = uiState.value.items.find { it.name == event.itemName }
+                if (current != null) {
+                    viewModelScope.launch {
+                        val price = current.price.filter { it.isDigit() || it == '.' }.toDoubleOrNull() ?: 0.0
+                        when (val res = repository.updateMenuItem(
+                            name = current.name,
+                            description = null,
+                            price = price,
+                            category = current.category,
+                            active = !current.active,
+                            prepTimeMinutes = null,
+                            ingredients = null,
+                        )) {
+                            is NetworkResult.Success -> {
+                                val updated = uiState.value.items.map { item ->
+                                    if (item.name == event.itemName) item.copy(active = !item.active) else item
+                                }
+                                updateUiState { copy(items = updated, selectedItem = updated.find { it.name == selectedItem?.name }) }
+                            }
+                            is NetworkResult.Error -> {
+                                _uiEffect.trySend(MenuManagementUiEffect.ShowSnackBar(res.errorMessage ?: "Failed to update status"))
+                            }
+                        }
+                    }
                 }
-                updateUiState { copy(items = updated, selectedItem = updated.find { it.name == selectedItem?.name }) }
             }
 
             is MenuManagementUiEvent.OnEdit -> {
-                // For now, treat edit as view details selection
+                // Select item so side pane can prefill via AddMenuItemViewModel.setEditing
                 val sel = uiState.value.items.find { it.name == event.itemName }
-                updateUiState { copy(selectedItem = sel) }
+                updateUiState { copy(selectedItem = sel, showAddMenu = true) }
+            }
+
+            is MenuManagementUiEvent.OnDelete -> {
+                val name = event.itemName
+                viewModelScope.launch {
+                    when (val res = repository.deleteMenuItem(name)) {
+                        is NetworkResult.Success -> {
+                            getMenuItems()
+                            _uiEffect.trySend(MenuManagementUiEffect.ShowSnackBar("Item deleted"))
+                        }
+                        is NetworkResult.Error -> _uiEffect.trySend(MenuManagementUiEffect.ShowSnackBar(res.errorMessage ?: "Delete failed"))
+                    }
+                }
             }
 
             is MenuManagementUiEvent.OnClickViewDetails -> {

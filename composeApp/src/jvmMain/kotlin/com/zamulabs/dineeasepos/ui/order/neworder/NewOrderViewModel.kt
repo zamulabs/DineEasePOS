@@ -45,6 +45,95 @@ class NewOrderViewModel(
             is NewOrderUiEvent.OnTableSelected -> updateUiState { copy(selectedTable = event.table) }
             is NewOrderUiEvent.OnCategorySelected -> updateUiState { copy(selectedCategoryIndex = event.index) }
             is NewOrderUiEvent.OnNotesChanged -> updateUiState { copy(notes = event.notes) }
+            is NewOrderUiEvent.OnAddToCart -> addToCart(event.title)
+            is NewOrderUiEvent.OnIncQty -> changeQty(event.title, +1)
+            is NewOrderUiEvent.OnDecQty -> changeQty(event.title, -1)
+            is NewOrderUiEvent.OnRemoveItem -> removeItem(event.title)
+            NewOrderUiEvent.OnPlaceOrder -> { /* handled by screen payment pane toggle for now */ }
+        }
+    }
+
+    private fun addToCart(title: String) {
+        viewModelScope.launch {
+            val price = guessPrice(title)
+            val existing = _uiState.value.cart.find { it.title == title }
+            val newQty = (existing?.quantity ?: 0) + 1
+            when (val ok = repository.checkStock(title, newQty)) {
+                is NetworkResult.Error -> _uiEffect.trySend(NewOrderUiEffect.ShowSnackBar(ok.errorMessage ?: "Failed to check stock"))
+                is NetworkResult.Success -> {
+                    if (ok.data == true) {
+                        repository.adjustStock(title, -1)
+                        updateUiState {
+                            val list = cart.toMutableList()
+                            if (existing == null) list.add(CartItem(title, 1, price)) else list[cart.indexOf(existing)] = existing.copy(quantity = newQty)
+                            copy(cart = list)
+                        }
+                    } else {
+                        _uiEffect.trySend(NewOrderUiEffect.ShowSnackBar("Insufficient stock for $title"))
+                    }
+                }
+            }
+        }
+    }
+
+    private fun changeQty(title: String, delta: Int) {
+        viewModelScope.launch {
+            val current = _uiState.value.cart.find { it.title == title } ?: return@launch
+            val targetQty = (current.quantity + delta).coerceAtLeast(0)
+            if (targetQty == 0 && delta < 0) {
+                // return stock and remove
+                repository.adjustStock(title, +current.quantity)
+                removeItem(title)
+                return@launch
+            }
+            if (delta > 0) {
+                when (val ok = repository.checkStock(title, current.quantity + 1)) {
+                    is NetworkResult.Error -> _uiEffect.trySend(NewOrderUiEffect.ShowSnackBar(ok.errorMessage ?: "Failed to check stock"))
+                    is NetworkResult.Success -> {
+                        if (ok.data == true) {
+                            repository.adjustStock(title, -1)
+                            updateUiState {
+                                val list = cart.toMutableList()
+                                val idx = list.indexOfFirst { it.title == title }
+                                list[idx] = list[idx].copy(quantity = list[idx].quantity + 1)
+                                copy(cart = list)
+                            }
+                        } else _uiEffect.trySend(NewOrderUiEffect.ShowSnackBar("Insufficient stock for $title"))
+                    }
+                }
+            } else if (delta < 0) {
+                repository.adjustStock(title, +1)
+                updateUiState {
+                    val list = cart.toMutableList()
+                    val idx = list.indexOfFirst { it.title == title }
+                    val newQ = (list[idx].quantity - 1).coerceAtLeast(0)
+                    if (newQ == 0) list.removeAt(idx) else list[idx] = list[idx].copy(quantity = newQ)
+                    copy(cart = list)
+                }
+            }
+        }
+    }
+
+    private fun removeItem(title: String) {
+        val existing = _uiState.value.cart.find { it.title == title } ?: return
+        viewModelScope.launch {
+            repository.adjustStock(title, +existing.quantity)
+            updateUiState { copy(cart = cart.filterNot { it.title == title }) }
+        }
+    }
+
+    private fun guessPrice(title: String): Double {
+        val catalog = _uiState.value.items
+        val fromMenu = catalog.find { it.title == title }
+        val priceFromMenu = fromMenu?.description?.let { s ->
+            // We don't have price in menu DTO; fallback to a simple sample mapping
+            null
+        }
+        return priceFromMenu ?: when {
+            title.contains("pizza", true) -> 10.0
+            title.contains("salad", true) -> 6.5
+            title.contains("soup", true) -> 5.0
+            else -> 8.0
         }
     }
 
@@ -63,7 +152,7 @@ class NewOrderViewModel(
                     }
                 }
                 is NetworkResult.Success -> {
-                    val tableLabels = listOf("Select Table") + (tablesRes.data?.map { it.number } ?: emptyList())
+                    val tableLabels = listOf("Select Table", "Takeaway") + (tablesRes.data?.map { it.number } ?: emptyList())
                     updateUiState { copy(isLoadingTables = false, tables = tableLabels) }
                 }
             }

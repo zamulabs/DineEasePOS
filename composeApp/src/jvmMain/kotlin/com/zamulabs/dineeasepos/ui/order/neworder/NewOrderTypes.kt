@@ -55,6 +55,18 @@ data class CartItem(
     val price: Double,
 )
 
+sealed interface NewOrderUiEvent{
+    data class OnSearch(val query: String): NewOrderUiEvent
+    data class OnTableSelected(val table: String): NewOrderUiEvent
+    data class OnCategorySelected(val index: Int): NewOrderUiEvent
+    data class OnNotesChanged(val notes: String): NewOrderUiEvent
+    data class OnAddToCart(val title: String): NewOrderUiEvent
+    data class OnIncQty(val title: String): NewOrderUiEvent
+    data class OnDecQty(val title: String): NewOrderUiEvent
+    data class OnRemoveItem(val title: String): NewOrderUiEvent
+    data object OnPlaceOrder: NewOrderUiEvent
+}
+
 sealed class NewOrderUiEffect {
     data class ShowSnackBar(val message: String) : NewOrderUiEffect()
     data object NavigateBack : NewOrderUiEffect()

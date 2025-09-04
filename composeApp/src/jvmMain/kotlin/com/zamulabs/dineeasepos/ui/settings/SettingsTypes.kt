@@ -26,12 +26,19 @@ data class SettingsUiState(
             TaxRate("City tax", "1.5%", true),
             TaxRate("County tax", "0.75%", false),
         ),
+    // Morning prep rows for start-of-day inputs
+    val morningPrepRows: List<MorningPrepRow> = listOf(MorningPrepRow()),
     val snackbarHostState: SnackbarHostState = SnackbarHostState(),
 )
 
 enum class SettingsTab { General, Payments, Receipts, Taxes, System }
 
-data class TaxRate(
+data class MorningPrepRow(
+    val item: String = "",
+    val quantity: String = "",
+)
+
+ data class TaxRate(
     val name: String,
     val rate: String,
     val active: Boolean,
@@ -44,4 +51,10 @@ sealed interface SettingsUiEvent {
     ) : SettingsUiEvent
 
     data object OnAddTaxRate : SettingsUiEvent
+
+    // Morning prep events
+    data class OnPrepItemChanged(val index: Int, val value: String) : SettingsUiEvent
+    data class OnPrepQtyChanged(val index: Int, val value: String) : SettingsUiEvent
+    data object OnAddPrepRow : SettingsUiEvent
+    data object OnSaveMorningPrep : SettingsUiEvent
 }

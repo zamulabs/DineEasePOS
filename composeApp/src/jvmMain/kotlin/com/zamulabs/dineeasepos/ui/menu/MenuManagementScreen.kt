@@ -80,6 +80,7 @@ fun MenuManagementScreen(
                         is MenuManagementUiEvent.OnTabSelected -> viewModel.onEvent(ev)
                         is MenuManagementUiEvent.OnToggleActive -> viewModel.onEvent(ev)
                         is MenuManagementUiEvent.OnEdit -> viewModel.onEvent(ev)
+                        is MenuManagementUiEvent.OnDelete -> viewModel.onEvent(ev)
                     }
                 },
                 modifier = modifier
@@ -89,6 +90,13 @@ fun MenuManagementScreen(
             val showAdd = uiState.showAddMenu
             if (showAdd) {
                 val addState by addVm.uiState.collectAsState()
+                // Prefill edit form when selection changes and pane is open for edit
+                androidx.compose.runtime.LaunchedEffect(uiState.selectedItem, uiState.showAddMenu) {
+                    val sel = uiState.selectedItem
+                    if (uiState.showAddMenu && sel != null) {
+                        addVm.setEditing(sel)
+                    }
+                }
                 com.zamulabs.dineeasepos.ui.menu.addmenu.AddMenuItemScreenContent(
                     state = addState,
                     onEvent = addVm::onEvent,

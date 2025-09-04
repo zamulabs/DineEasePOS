@@ -31,6 +31,8 @@ data class AddMenuItemUiState(
     val categories: List<String> = listOf("Select Category", "Starters", "Mains", "Desserts", "Drinks"),
     val statuses: List<String> = listOf("Select Status", "Active", "Inactive"),
     val snackbarHostState: androidx.compose.material3.SnackbarHostState = androidx.compose.material3.SnackbarHostState(),
+    val isEdit: Boolean = false,
+    val originalName: String? = null,
 )
 
 sealed interface AddMenuItemUiEvent {
