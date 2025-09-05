@@ -30,16 +30,13 @@ jobs:
           chmod +x gradlew
           ./gradlew composeApp:createDistributable
 
-      - name: Decode signing key
-        run: |
-          echo "${{ secrets.SIGNING_KEY }}" | base64 --decode > signing-key.p12
-
       - name: Run Conveyor
-        uses: hydraulic-software/conveyor/actions/build@v16.0
+        uses: hydraulic-software/conveyor/actions/build@v18.1
         env:
           MY_GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
-          SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
         with:
           command: make copied-site
+          signing_key: ${{ secrets.SIGNING_KEY }}   # base64 .p12 stored in secrets
+          signing_key_password: ${{ secrets.SIGNING_KEY_PASSWORD }}
+          extra_flags: -f ci.conveyor.conf
           agree_to_license: 1
-
