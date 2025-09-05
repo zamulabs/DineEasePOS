@@ -1,19 +1,18 @@
-name: Build Desktop app
+name: Build & Release Desktop App
 
 on:
   push:
     tags:
-      - '*'
+      - '*'   # Run on any tag push, e.g. v1.0.0
 
 permissions:
-  contents: write
+  contents: write   # Required for GitHub Releases
 
 jobs:
   build:
-    name: Build Desktop app
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout workspace
+      - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Set up JDK
@@ -22,24 +21,21 @@ jobs:
           distribution: 'zulu'
           java-version: '17'
 
-      - name: Display Java version
+      - name: Verify Java version
         run: java -version
 
-      - name: Build with Gradle
+      - name: Build distributables with Gradle
         run: |
           chmod +x gradlew
           ./gradlew composeApp:createDistributable
 
       - name: Run Conveyor
-        uses: hydraulic-software/conveyor/actions/build@v18.1
+        uses: hydraulic-software/conveyor/actions/build@v19.0
         env:
-          MY_GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
           SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
           SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
+          MY_GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
         with:
           command: make copied-site
-          signing_key: ${{ secrets.SIGNING_KEY }}
-          signing_key_password: ${{ secrets.SIGNING_KEY_PASSWORD }}
           extra_flags: -f ci.conveyor.conf
           agree_to_license: 1
-
