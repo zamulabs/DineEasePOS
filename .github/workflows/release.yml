@@ -32,10 +32,14 @@ jobs:
       - name: Run Conveyor
         uses: hydraulic-software/conveyor/actions/build@v19.0
         env:
-          SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
           SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
           MY_GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
         with:
           command: make copied-site
           extra_flags: -f ci.conveyor.conf
+          signing_key: ${{ secrets.SIGNING_KEY }}
           agree_to_license: 1
+          cache_key: conveyor
+          cache_path: .conveyor
+          conveyor_version: 19.0
+
