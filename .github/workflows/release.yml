@@ -41,5 +41,4 @@ jobs:
           agree_to_license: 1
           cache_key: conveyor
           cache_path: .conveyor
-          conveyor_version: 19.0
 
