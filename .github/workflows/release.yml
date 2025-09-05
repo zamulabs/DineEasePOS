@@ -38,8 +38,8 @@ jobs:
         uses: hydraulic-software/conveyor/actions/build@v16.0
         env:
           MY_GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
+          SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
         with:
           command: make copied-site
-          signing_key: ${{ secrets.SIGNING_KEY }}
-          signing_key_password: ${{ secrets.SIGNING_KEY_PASSWORD }}
           agree_to_license: 1
+
