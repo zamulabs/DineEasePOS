@@ -1,4 +1,4 @@
-name: Build and Release Desktop app
+name: Build Desktop app
 
 on:
   push:
@@ -10,6 +10,7 @@ permissions:
 
 jobs:
   build:
+    name: Build Desktop app
     runs-on: ubuntu-latest
     steps:
       - name: Checkout workspace
@@ -21,10 +22,13 @@ jobs:
           distribution: 'zulu'
           java-version: '17'
 
-      - name: Gradle build
+      - name: Display Java version
+        run: java -version
+
+      - name: Build with Gradle
         run: |
           chmod +x gradlew
-          ./gradlew build allTests createDistributable
+          ./gradlew composeApp:createDistributable
 
       - name: Run Conveyor
         uses: hydraulic-software/conveyor/actions/build@v16.0
