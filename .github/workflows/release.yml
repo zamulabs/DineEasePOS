@@ -1,41 +1,37 @@
-name: Release with Conveyor
+name: Build and Release Desktop app
 
 on:
   push:
     tags:
-      - "v*.*.*"   # release when you push a tag like v1.0.1
+      - '*'
+
+permissions:
+  contents: write
 
 jobs:
-  release:
+  build:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout
+      - name: Checkout workspace
         uses: actions/checkout@v4
 
-      - name: Set up JDK 17
+      - name: Set up JDK
         uses: actions/setup-java@v4
         with:
-          java-version: "17"
-          distribution: "temurin"
+          distribution: 'zulu'
+          java-version: '17'
 
-      - name: Cache Gradle
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
-
-      - name: Build JAR
-        run: ./gradlew jvmJar
-
-      - name: Install Conveyor
-        run: curl -L https://conveyor.hydraulic.dev/install | sh
+      - name: Gradle build
+        run: |
+          chmod +x gradlew
+          ./gradlew build allTests createDistributable
 
       - name: Run Conveyor
+        uses: hydraulic-software/conveyor/actions/build@v16.0
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # or your PAT secret
-        run: conveyor make copied-site
+          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
+        with:
+          command: make copied-site
+          signing_key: ${{ secrets.SIGNING_KEY }}
+          signing_key_password: ${{ secrets.SIGNING_KEY_PASSWORD }}
+          agree_to_license: 1
