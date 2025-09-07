@@ -39,4 +39,4 @@ subprojects {
 }
 
 group = "com.zamulabs"
-version = "1.0.0"
+version = properties["version"] as String

@@ -94,7 +94,7 @@ sqldelight {
 }
 
 group = "com.zamulabs"
-version = "1.0.0" // Or ensure gradle.properties defines version=1.0.0
+version = properties["version"] as String
 
 compose.desktop {
     application {
@@ -103,7 +103,7 @@ compose.desktop {
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Exe, TargetFormat.Deb)
             packageName = "DineEasePOS"
-            packageVersion = "1.0.0"
+            packageVersion = properties["version"] as String
             description = "Point of Sale system for restaurants"
             vendor = "Zamulabs"
             copyright = "© 2025 Zamulabs"
